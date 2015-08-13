@@ -73,6 +73,20 @@
 *** Releases and Change Log                                               ***
 *****************************************************************************
 
+*** 3.0.1 ***
+- HAL: Fixed CEC clock cannot be disabled on STM32F0xx (bug #628).
+- VAR: Fixed lwIP arch code breaks with a 16-bit systick timer (bug #627).
+- HAL: Fixed broken MAC driver for STM32F107 (bug #626).
+- NIL: Fixed missing configuration options from NIL PPC port (bug #625).
+- HAL: Fixed wrong offset in STM32 DAC driver (bug #624).
+- HAL: Fixed crash on STM32F030x4/6 devices (bug #623).
+- HAL: Fixed duplicated doxygen tag in STM32F4xx hal_lld.h file (bug #621).
+- HAL: Fixed STM32F042 registry error (bug #620).
+- HAL: Fixed wrong check in canReceive() (bug #619).
+- HAL: Fixed wrong EXTI[18] vector number on STM32F373 (bug #618).
+- HAL: Fixed wrong check on STM32_LSE_ENABLED definition in STM32L1xx HAL port
+       (bug #617).
+
 *** 3.0.0 ***
 - NEW: Added an initialization function to the lwIP bindings, now it is
        sufficient to call lwipInit(NULL); in order to start the subsystem.

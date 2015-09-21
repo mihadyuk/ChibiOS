@@ -74,13 +74,14 @@
 *****************************************************************************
 
 *** 3.0.2 ***
+- HAL: Fixed RT dependency in STM32 SDCv1 driver (bug #643).
 - VAR: Fixed incorrect working area size in LwIP creation in demos (bug #642).
 - HAL: Fixed error in hal_lld_f100.h checks (bug #641).
 - HAL: Fixed volatile variable issue in I/O queues, both RT and HAL (bug #640).
 - HAL: Fixed wrong DMA assignment for I2C1 in STM32F302xC registry (bug #637).
 - HAL: Fixed missing timers 5, 6, 7, 10 & 11 from STM32L1 HAL port (bug #636).
 - VAR: Fixed CRT0_CALL_DESTRUCTORS not utilized in crt0_v7m.s (bug #635).
-- HAL: Fixed wrong ld file in STM32F072xB USB CDC demo (bug #634).
+- DEM: Fixed wrong ld file in STM32F072xB USB CDC demo (bug #634).
 - NIL: Fixed wrong assertion in NIL chSemResetI() and NIL OSAL
        osalThreadDequeueAllI() (bug #633).
 - RT:  Fixed problem with RT mutexes involving priority inheritance (bug #632).

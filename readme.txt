@@ -74,6 +74,9 @@
 *****************************************************************************
 
 *** 3.0.3 ***
+- HAL: Fixed STM32L1xx HAL errors in comments (bug #657).
+- HAL: Fixed STM32 USBv1 wrong buffer alignment (bug #656).
+- HAL: Fixed Wrong vector name for STM32F3xx EXTI33 (bug #655).
 - HAL: Fixed missing RCC and ISR definitions for STM32F0xx timers (bug #651).
 - HAL: Fixed incorrect compiler check in STM32 RTCv1 driver (bug #650).
 - HAL: Fixed STM32F3xx HAL checking for non-existing macros (bug #648).

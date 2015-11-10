@@ -60,9 +60,9 @@
   +--test/                - Kernel test suite source code.
   |  +--lib/              - Portable test engine.
   |  +--hal/              - HAL test suites.
-  |  |  +--testbuild/     - HAL uild test and MISRA check.
+  |  |  +--testbuild/     - HAL build test and MISRA check.
   |  +--nil/              - NIL test suites.
-  |  |  +--testbuild/     - NIL nuild test and MISRA check.
+  |  |  +--testbuild/     - NIL build test and MISRA check.
   |  +--rt/               - RT test suites.
   |  |  +--testbuild/     - RT build test and MISRA check.
   |  |  +--coverage/      - RT code coverage project.
@@ -73,6 +73,11 @@
 *****************************************************************************
 
 *** 3.1.0 ***
+- HAL: Added I2S driver for STM32 SPIv2 peripheral.
+- HAL: Added demos and board files for ST's Nucleo32 boards (F031, F042, F303).
+- HAL: Added "lines" handling to PAL driver, lines are identifiers of both
+       ports and pins encoded in a single value. Added a set of macros
+       operating on lines.
 - HAL: Merged the latest STM32F2xx CMSIS headers and fixed the support
        broken in 3.0.x.
 - RT:  Added new function chVTGetTimersStateI() returning the state of the
@@ -126,6 +131,10 @@
 - HAL: Updated STM32F0xx headers to STM32CubeF0 version 1.3.0. Added support
        for STM32F030xC, STM32F070x6, STM32F070xB, STM32F091xC,
        STM32F098xx devices.
+- HAL: Fixed differences in STM32F3 ADC macro definitions (bug #665)
+       (backported to 3.0.3).
+- HAL: Fixed invalid class type for sdPutWouldBlock() and sdGetWouldBlock()
+       functions (bug #659)(backported to 3.0.3 and 2.6.10).
 - HAL: Fixed STM32F0xx HAL missing MCOPRE support (bug #658).
 - HAL: Fixed STM32L1xx HAL errors in comments (bug #657)(backported
        to 3.0.3 and 2.6.10).
@@ -133,6 +142,8 @@
        to 3.0.3 and 2.6.10).
 - HAL: Fixed wrong vector name for STM32F3xx EXTI33 (bug #655)(backported
        to 3.0.3 and 2.6.10).
+- HAL: Fixed nvicEnableVector broken for Cortex-M0 (bug #654)(backported
+       to 3.0.3).
 - HAL: Fixed no demo for nucleo STM32F072RB board (bug #652).
 - HAL: Fixed missing RCC and ISR definitions for STM32F0xx timers (bug #651)
        (backported to 3.0.3 and 2.6.10).

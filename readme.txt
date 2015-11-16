@@ -73,8 +73,13 @@
 *** Releases and Change Log                                               ***
 *****************************************************************************
 
+*** 3.0.4 ***
+- HAL: Fixed invalid macro in STM32F0xx registry (bug #668).
+- HAL: Fixed I2S clock selection not working in STM32F4xx HAL (bug #667).
+
 *** 3.0.3 ***
 - HAL: Fixed differences in STM32F3 ADC macro definitions (bug #665).
+- HAL: Fixed RTC module loses day of week when converting (bug #664).
 - HAL: Fixed invalid class type for sdPutWouldBlock() and sdGetWouldBlock()
        functions (bug #659).
 - HAL: Fixed STM32L1xx HAL errors in comments (bug #657).
@@ -88,6 +93,7 @@
 - RT:  Fixed problem with chTimeIsWithin() (bug #646).
 - VAR: Fixed _sbrk_r with incr == 0 should be valid (bug #645).
 - RT:  Fixed issues in CMSIS RTOS interface (bug #644).
+- HAL: Fixed rtcConvertDateTimeToFAT() incorrect conversion (bug #615).
 
 *** 3.0.2 ***
 - HAL: Fixed RT dependency in STM32 SDCv1 driver (bug #643).

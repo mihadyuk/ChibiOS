@@ -15,7 +15,7 @@
 */
 
 /**
- * @file    STM32/GPIOv2/pal_lld.c
+ * @file    STM32/GPIOv3/pal_lld.c
  * @brief   STM32 PAL low level driver code.
  *
  * @addtogroup PAL
@@ -30,20 +30,12 @@
 /* Driver local definitions.                                                 */
 /*===========================================================================*/
 
-#if defined(STM32L0XX) || defined(STM32L1XX)
-#define AHB_EN_MASK     STM32_GPIO_EN_MASK
-#define AHB_LPEN_MASK   AHB_EN_MASK
-
-#elif defined(STM32F0XX) || defined(STM32F3XX) || defined(STM32F37X)
-#define AHB_EN_MASK     STM32_GPIO_EN_MASK
-#define AHB_LPEN_MASK   0
-
-#elif defined(STM32F2XX) || defined(STM32F4XX) || defined(STM32F7XX)
+#if defined(STM32L4XX)
 #define AHB1_EN_MASK    STM32_GPIO_EN_MASK
-#define AHB1_LPEN_MASK  AHB1_EN_MASK
+#define AHB1_LPEN_MASK  0
 
 #else
-#error "missing or unsupported platform for GPIOv2 PAL driver"
+#error "missing or unsupported platform for GPIOv3 PAL driver"
 #endif
 
 /*===========================================================================*/
@@ -61,12 +53,14 @@
 static void initgpio(stm32_gpio_t *gpiop, const stm32_gpio_setup_t *config) {
 
   gpiop->OTYPER  = config->otyper;
+  gpiop->ASCR    = config->ascr;
   gpiop->OSPEEDR = config->ospeedr;
   gpiop->PUPDR   = config->pupdr;
   gpiop->ODR     = config->odr;
   gpiop->AFRL    = config->afrl;
   gpiop->AFRH    = config->afrh;
   gpiop->MODER   = config->moder;
+  gpiop->LOCKR   = config->lockr;
 }
 
 /*===========================================================================*/
@@ -90,19 +84,8 @@ void _pal_lld_init(const PALConfig *config) {
   /*
    * Enables the GPIO related clocks.
    */
-#if defined(STM32L0XX)
-  RCC->IOPENR |= AHB_EN_MASK;
-  RCC->IOPSMENR |= AHB_LPEN_MASK;
-#elif defined(STM32L1XX)
-  rccEnableAHB(AHB_EN_MASK, TRUE);
-  RCC->AHBLPENR |= AHB_LPEN_MASK;
-#elif defined(STM32F0XX)
-  rccEnableAHB(AHB_EN_MASK, TRUE);
-#elif defined(STM32F3XX) || defined(STM32F37X)
-  rccEnableAHB(AHB_EN_MASK, TRUE);
-#elif defined(STM32F2XX) || defined(STM32F4XX) || defined(STM32F7XX)
-  RCC->AHB1ENR   |= AHB1_EN_MASK;
-  RCC->AHB1LPENR |= AHB1_LPEN_MASK;
+#if defined(STM32L4XX)
+  RCC->AHB2ENR   |= AHB1_EN_MASK;
 #endif
 
   /*
@@ -165,6 +148,8 @@ void _pal_lld_setgroupmode(ioportid_t port,
   uint32_t ospeedr = (mode & PAL_STM32_OSPEED_MASK) >> 3;
   uint32_t pupdr   = (mode & PAL_STM32_PUDR_MASK) >> 5;
   uint32_t altr    = (mode & PAL_STM32_ALTERNATE_MASK) >> 7;
+  uint32_t ascr    = (mode & PAL_STM32_ASCR_MASK) >> 11;
+  uint32_t lockr   = (mode & PAL_STM32_LOCKR_MASK) >> 12;
   uint32_t bit     = 0;
   while (true) {
     if ((mask & 1) != 0) {
@@ -178,10 +163,12 @@ void _pal_lld_setgroupmode(ioportid_t port,
         port->AFRH = (port->AFRH & ~m4) | altrmask;
       m1 = 1 << bit;
       port->OTYPER  = (port->OTYPER & ~m1) | otyper;
+      port->ASCR    = (port->ASCR & ~m1) | ascr;
       m2 = 3 << (bit * 2);
       port->OSPEEDR = (port->OSPEEDR & ~m2) | ospeedr;
       port->PUPDR   = (port->PUPDR & ~m2) | pupdr;
       port->MODER   = (port->MODER & ~m2) | moder;
+      port->LOCKR   = (port->LOCKR & ~m1) | lockr;
     }
     mask >>= 1;
     if (!mask)

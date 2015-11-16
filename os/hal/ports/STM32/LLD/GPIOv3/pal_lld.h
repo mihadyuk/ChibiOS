@@ -15,7 +15,7 @@
 */
 
 /**
- * @file    STM32/GPIOv2/pal_lld.h
+ * @file    STM32/GPIOv3/pal_lld.h
  * @brief   STM32 PAL low level driver header.
  *
  * @addtogroup PAL
@@ -55,14 +55,10 @@
 #define PAL_STM32_OTYPE_OPENDRAIN       (1U << 2U)
 
 #define PAL_STM32_OSPEED_MASK           (3U << 3U)
-#define PAL_STM32_OSPEED_LOWEST         (0U << 3U)
-#if defined(STM32F0XX) || defined(STM32F30X) || defined(STM32F37X)
-#define PAL_STM32_OSPEED_MID            (1U << 3U)
-#else
-#define PAL_STM32_OSPEED_MID1           (1U << 3U)
-#define PAL_STM32_OSPEED_MID2           (2U << 3U)
-#endif
-#define PAL_STM32_OSPEED_HIGHEST        (3U << 3U)
+#define PAL_STM32_OSPEED_LOW            (0U << 3U)
+#define PAL_STM32_OSPEED_MEDIUM         (1U << 3U)
+#define PAL_STM32_OSPEED_FAST           (2U << 3U)
+#define PAL_STM32_OSPEED_HIGH           (3U << 3U)
 
 #define PAL_STM32_PUDR_MASK             (3U << 5U)
 #define PAL_STM32_PUDR_FLOATING         (0U << 5U)
@@ -71,6 +67,14 @@
 
 #define PAL_STM32_ALTERNATE_MASK        (15U << 7U)
 #define PAL_STM32_ALTERNATE(n)          ((n) << 7U)
+
+#define PAL_STM32_ASCR_MASK             (1U << 11U)
+#define PAL_STM32_ASCR_OFF              (0U << 11U)
+#define PAL_STM32_ASCR_ON               (1U << 11U)
+
+#define PAL_STM32_LOCKR_MASK            (1U << 12U)
+#define PAL_STM32_LOCKR_OFF             (0U << 12U)
+#define PAL_STM32_LOCKR_ON              (1U << 12U)
 
 /**
  * @brief   Alternate function.
@@ -86,14 +90,16 @@
  * @{
  */
 /**
- * @brief   This mode is implemented as input.
+ * @brief   Implemented as input.
  */
 #define PAL_MODE_RESET                  PAL_STM32_MODE_INPUT
 
 /**
- * @brief   This mode is implemented as input with pull-up.
+ * @brief   Implemented as analog with analog switch disabled and lock.
  */
-#define PAL_MODE_UNCONNECTED            PAL_MODE_INPUT_PULLUP
+#define PAL_MODE_UNCONNECTED            (PAL_STM32_MODE_ANALOG |            \
+                                         PAL_STM32_ASCR_OFF |               \
+                                         PAL_STM32_LOCKR_ON)
 
 /**
  * @brief   Regular input high-Z pad.
@@ -115,7 +121,8 @@
 /**
  * @brief   Analog input mode.
  */
-#define PAL_MODE_INPUT_ANALOG           PAL_STM32_MODE_ANALOG
+#define PAL_MODE_INPUT_ANALOG           (PAL_STM32_MODE_ANALOG |            \
+                                         PAL_STM32_ASCR_ON)
 
 /**
  * @brief   Push-pull output pad.
@@ -233,10 +240,11 @@ typedef struct {
       uint16_t          clear;
     } H;
   } BSRR;
-  volatile uint32_t     LCKR;
+  volatile uint32_t     LOCKR;
   volatile uint32_t     AFRL;
   volatile uint32_t     AFRH;
   volatile uint32_t     BRR;
+  volatile uint32_t     ASCR;
 } stm32_gpio_t;
 
 /**
@@ -257,6 +265,10 @@ typedef struct {
   uint32_t              afrl;
   /** Initial value for AFRH register.*/
   uint32_t              afrh;
+  /** Initial value for ASCR register.*/
+  uint32_t              ascr;
+  /** Initial value for LOCKR register.*/
+  uint32_t              lockr;
 } stm32_gpio_setup_t;
 
 /**

@@ -36,7 +36,7 @@
  * @brief   CMSIS system core clock variable.
  * @note    It is declared in system_stm32f4xx.h.
  */
-uint32_t SystemCoreClock = STM32_SYSCLK;
+uint32_t SystemCoreClock = STM32_HCLK;
 
 /*===========================================================================*/
 /* Driver local variables and types.                                         */
@@ -178,7 +178,7 @@ void stm32_clock_init(void) {
   /* HSE activation.*/
 #if defined(STM32_HSE_BYPASS)
   /* HSE Bypass.*/
-  RCC->CR |= RCC_CR_HSEON | RCC_CR_HSEBYP;
+  RCC->CR |= RCC_CR_HSEBYP;
 #else
   /* No HSE Bypass.*/
   RCC->CR |= RCC_CR_HSEON;
@@ -245,7 +245,8 @@ void stm32_clock_init(void) {
 
   /* Other clock-related settings (dividers, MCO etc).*/
   RCC->CFGR = STM32_MCO2PRE | STM32_MCO2SEL | STM32_MCO1PRE | STM32_MCO1SEL |
-              STM32_RTCPRE | STM32_PPRE2 | STM32_PPRE1 | STM32_HPRE;
+              STM32_I2SSRC | STM32_RTCPRE | STM32_PPRE2 | STM32_PPRE1 |
+              STM32_HPRE;
 
   /* Flash setup.*/
 #if defined(STM32_USE_REVISION_A_FIX)

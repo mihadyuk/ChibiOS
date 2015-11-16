@@ -73,6 +73,11 @@
 *****************************************************************************
 
 *** 3.1.0 ***
+- HAL: Introduced preliminary support for STM32F7xx devices.
+- HAL: Introduced preliminary support for STM32L4xx devices.
+- HAL: Introduced preliminary support for STM32L0xx devices.
+- HAL: Added synchronous API and mutual exclusion to the UART driver.
+- HAL: Added PAL driver for STM32L4xx GPIOv3 peripheral.
 - HAL: Added I2S driver for STM32 SPIv2 peripheral.
 - HAL: Added demos and board files for ST's Nucleo32 boards (F031, F042, F303).
 - HAL: Added "lines" handling to PAL driver, lines are identifiers of both
@@ -119,8 +124,6 @@
 - HAL: STM32F0xx and STM32L0xx devices now share the same ADCv1 driver.
 - HAL: STM32F0xx, STM32F1xx, STM32F3xx, STM32F37x, STM32L0xx and STM32L1xx
        devices now share the same DMAv1 driver.
-- HAL: Introduced preliminary support for STM32F7xx devices.
-- HAL: Introduced preliminary support for STM32L0xx devices.
 - HAL: New STM32 shared DMAv2 driver supporting channel selection and
        data cache invalidation (F2, F4, F7).
 - HAL: New STM32 shared DMAv1 driver supporting channel selection and fixing
@@ -131,7 +134,11 @@
 - HAL: Updated STM32F0xx headers to STM32CubeF0 version 1.3.0. Added support
        for STM32F030xC, STM32F070x6, STM32F070xB, STM32F091xC,
        STM32F098xx devices.
+- HAL: Fixed I2S clock selection not working in STM32F4xx HAL (bug #667)
+       (backported to 3.0.4 and 2.6.10).
 - HAL: Fixed differences in STM32F3 ADC macro definitions (bug #665)
+       (backported to 3.0.3).
+- HAL: Fixed RTC module loses day of week when converting (bug #664)
        (backported to 3.0.3).
 - HAL: Fixed invalid class type for sdPutWouldBlock() and sdGetWouldBlock()
        functions (bug #659)(backported to 3.0.3 and 2.6.10).

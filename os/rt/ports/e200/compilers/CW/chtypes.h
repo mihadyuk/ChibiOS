@@ -18,10 +18,10 @@
 */
 
 /**
- * @file    ARMCMx/compilers/GCC/chtypes.h
- * @brief   ARM Cortex-Mx port system types.
+ * @file    e200/compilers/CW/chtypes.h
+ * @brief   Power e200 port system types.
  *
- * @addtogroup ARMCMx_GCC_CORE
+ * @addtogroup PPC_CW_CORE
  * @{
  */
 
@@ -87,11 +87,6 @@ typedef uint32_t            ucnt_t;         /**< Generic unsigned counter.  */
  * @brief   Optimized thread function declaration macro.
  */
 #define PORT_THD_FUNCTION(tname, arg) void tname(void *arg)
-
-/**
- * @brief   Packed variable specifier.
- */
-#define PACKED_VAR __attribute__((packed))
 
 #endif /* _CHTYPES_H_ */
 

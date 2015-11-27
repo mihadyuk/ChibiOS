@@ -34,6 +34,10 @@
         .extern     __ram_end__
         .extern     __ivpr_base__
 
+        .extern     _IVOR0,  _IVOR1,  _IVOR2,  _IVOR3,  _IVOR4,  _IVOR5
+        .extern     _IVOR6,  _IVOR7,  _IVOR8,  _IVOR9,  _IVOR10, _IVOR11
+        .extern     _IVOR12, _IVOR13, _IVOR14, _IVOR15
+
         /* BAM record.*/
         .section    .boot, 16
 
@@ -53,25 +57,25 @@ _reset_address:
         /*
          * Image relocation in RAM.
          */
-        lis         r4, __ram_reloc_start__@h
-        ori         r4, r4, __ram_reloc_start__@l
-        lis         r5, __ram_reloc_dest__@h
-        ori         r5, r5, __ram_reloc_dest__@l
-        lis         r6, __ram_reloc_end__@h
-        ori         r6, r6, __ram_reloc_end__@l
+        e_lis       r4, __ram_reloc_start__@h
+        e_or2i      r4, r4, __ram_reloc_start__@l
+        e_lis       r5, __ram_reloc_dest__@h
+        e_or2i      r5, r5, __ram_reloc_dest__@l
+        e_lis       r6, __ram_reloc_end__@h
+        e_or2i      r6, r6, __ram_reloc_end__@l
 .relloop:
-        cmpl        cr0, r4, r6
-        bge         cr0, .relend
-        lwz         r7, 0(r4)
-        addi        r4, r4, 4
-        stw         r7, 0(r5)
-        addi        r5, r5, 4
-        b           .relloop
+        se_cmpl     r4, r6
+        se_bge      .relend
+        se_lwz      r7, 0(r4)
+        se_addi     r4, 4
+        se_stw      r7, 0(r5)
+        se_addi     r5, 4
+        se_b        .relloop
 .relend:
-        lis         r3, _boot_address@h
-        ori         r3, r3, _boot_address@l
+        e_lis       r3, _boot_address@h
+        e_or2i      r3, _boot_address@l
         mtctr       r3
-        bctrl
+        se_bctrl
 #else
         e_b         _boot_address
 #endif
@@ -192,28 +196,7 @@ IVORS:
 
         .section    .handlers, text_vle
         .align 		16
-        .weak       _IVOR0,  _IVOR1,  _IVOR2,  _IVOR3,  _IVOR4,  _IVOR5
-        .weak       _IVOR6,  _IVOR7,  _IVOR8,  _IVOR9,  _IVOR10, _IVOR11
-        .weak       _IVOR12, _IVOR13, _IVOR14, _IVOR15
-        .weak       _unhandled_exception
-_IVOR0:
-_IVOR1:
-_IVOR2:
-_IVOR3:
-_IVOR4:
-_IVOR5:
-_IVOR6:
-_IVOR7:
-_IVOR8:
-_IVOR9:
-_IVOR10:
-_IVOR11:
-_IVOR12:
-_IVOR13:
-_IVOR14:
-_IVOR15:
-_unhandled_exception:
-        se_b        _unhandled_exception
+
 
 #endif /* !defined(__DOXYGEN__) */
 

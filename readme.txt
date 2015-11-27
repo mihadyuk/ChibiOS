@@ -73,6 +73,7 @@
 *****************************************************************************
 
 *** 3.1.0 ***
+- RT:  Added CodeWarrior compiler support to the e200 port.
 - HAL: Introduced preliminary support for STM32F7xx devices.
 - HAL: Introduced preliminary support for STM32L4xx devices.
 - HAL: Introduced preliminary support for STM32L0xx devices.
@@ -134,6 +135,8 @@
 - HAL: Updated STM32F0xx headers to STM32CubeF0 version 1.3.0. Added support
        for STM32F030xC, STM32F070x6, STM32F070xB, STM32F091xC,
        STM32F098xx devices.
+- HAL: Fixed STM32 I2Cv2 driver fails on transfers greater than 255 bytes
+       (bug #673)(backported to 3.0.4).
 - HAL: Fixed STM32 I2Cv2 DMA conflict (bug #671)(backported to 3.0.4).
 - HAL: Fixed I2S clock selection not working in STM32F4xx HAL (bug #667)
        (backported to 3.0.4 and 2.6.10).
@@ -141,6 +144,8 @@
        (backported to 3.0.3).
 - HAL: Fixed RTC module loses day of week when converting (bug #664)
        (backported to 3.0.3).
+- HAL: Fixed STM32 USBv1 broken isochronous endpoints (bug #662)
+       (backported to 3.0.4).
 - HAL: Fixed STM32 USBv1 wrong multiplier when calculating descriptor address
        in BTABLE (bug #661)(backported to 3.0.4 and 2.6.10).
 - HAL: Fixed STM32 USBv1 does not make use of BTABLE_ADDR define (bug #660)

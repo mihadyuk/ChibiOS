@@ -77,6 +77,7 @@
 - HAL: Introduced preliminary support for STM32F7xx devices.
 - HAL: Introduced preliminary support for STM32L4xx devices.
 - HAL: Introduced preliminary support for STM32L0xx devices.
+- HAL: Added watchdog driver model (WDG).
 - HAL: Added synchronous API and mutual exclusion to the UART driver.
 - HAL: Added PAL driver for STM32L4xx GPIOv3 peripheral.
 - HAL: Added I2S driver for STM32 SPIv2 peripheral.
@@ -119,7 +120,8 @@
 - HAL: Added support for I2C3 and I2C4 to the STM32 I2Cv2 I2C driver.
 - HAL: Added support for SPI4...SPI6 to the STM32 SPIv2 SPI driver.
 - HAL: Added support for UART4...UART8 to the STM32 UARTv2 UART driver.
-- HAL: Added support for UART7 and UART8 to the STM32 UARTv2 serial driver.
+- HAL: Added support for UART7 and UART8,LPUART1 to the STM32 UARTv2 serial
+       driver.
 - HAL: STM32F2xx, STM32F4xx and STM32F7xx devices now share the same ADCv2
        and DMAv2 drivers.
 - HAL: STM32F0xx and STM32L0xx devices now share the same ADCv1 driver.
@@ -135,6 +137,8 @@
 - HAL: Updated STM32F0xx headers to STM32CubeF0 version 1.3.0. Added support
        for STM32F030xC, STM32F070x6, STM32F070xB, STM32F091xC,
        STM32F098xx devices.
+- HAL: Fixed usbStop() hangs in STM32 OTGv1 driver (bug #674)(backported
+       to 3.0.4 and 2.6.10).
 - HAL: Fixed STM32 I2Cv2 driver fails on transfers greater than 255 bytes
        (bug #673)(backported to 3.0.4).
 - HAL: Fixed STM32 I2Cv2 DMA conflict (bug #671)(backported to 3.0.4).

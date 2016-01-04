@@ -77,6 +77,10 @@
 - HAL: Introduced preliminary support for STM32F7xx devices.
 - HAL: Introduced preliminary support for STM32L4xx devices.
 - HAL: Introduced preliminary support for STM32L0xx devices.
+- HAL: Increased performance of USBv1 and OTGv1 driver thanks to better
+       data copying code.
+- HAL: Enhanced Serial-USB driver using the new buffers queues object.
+- HAL: Simplified USB driver, queued API has been removed.
 - HAL: Enhanced the CAN driver with I-class functions. Now it is possible
        to exchange frames from ISRs.
 - HAL: Added watchdog driver model (WDG) and STM32 implementation on IWDG.
@@ -142,6 +146,8 @@
 - HAL: Updated STM32F0xx headers to STM32CubeF0 version 1.3.0. Added support
        for STM32F030xC, STM32F070x6, STM32F070xB, STM32F091xC,
        STM32F098xx devices.
+- HAL: Fixed HAL drivers still calling RT functions (bug #686)(backported
+       to 3.0.5).
 - HAL: Fixed chprintf() still calling RT functions (bug #684)(backported
        to 3.0.5).
 - HAL: Fixed STM32 ICU driver uses chSysLock and chSysUnlock (bug #681)

@@ -128,11 +128,11 @@ typedef io_buffers_queue_t output_buffers_queue_t;
 /**
  * @brief   Computes the size of a buffers queue buffer size.
  *
- * @param[in] n         sumber of buffers in the queue
+ * @param[in] n         number of buffers in the queue
  * @param[in] size      size of the buffers
  */
 #define BQ_BUFFER_SIZE(n, size)                                             \
-  (((size_t)(size) + sizeof (size_t)) * (size_t)(n))
+  ((size_t)(size) + ((sizeof (size_t)) * (size_t)(n)))
 
 /**
  * @name    Macro Functions
@@ -192,8 +192,10 @@ typedef io_buffers_queue_t output_buffers_queue_t;
  *
  * @iclass
  */
-#define ibqIsFullI(ibqp) ((bool)(((ibqp)->bwrptr == (ibqp)->brdptr) &&      \
-                                 ((ibqp)->bcounter != 0U)))
+#define ibqIsFullI(ibqp)                                                    \
+  /*lint -save -e9007 [13.5] No side effects, a pointer is passed.*/        \
+  ((bool)(((ibqp)->bwrptr == (ibqp)->brdptr) && ((ibqp)->bcounter != 0U)))  \
+  /*lint -restore*/
 
 /**
  * @brief   Evaluates to @p true if the specified output buffers queue is empty.
@@ -205,8 +207,10 @@ typedef io_buffers_queue_t output_buffers_queue_t;
  *
  * @iclass
  */
-#define obqIsEmptyI(oqp) ((bool)(((obqp)->bwrptr == (obqp)->brdptr) &&      \
-                                 ((obqp)->bcounter != 0U)))
+#define obqIsEmptyI(obqp)                                                   \
+  /*lint -save -e9007 [13.5] No side effects, a pointer is passed.*/        \
+  ((bool)(((obqp)->bwrptr == (obqp)->brdptr) && ((obqp)->bcounter != 0U)))  \
+  /*lint -restore*/
 
 /**
  * @brief   Evaluates to @p true if the specified output buffers queue is full.
@@ -228,7 +232,7 @@ typedef io_buffers_queue_t output_buffers_queue_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void ibqObjectInit(io_buffers_queue_t *ibqp, uint8_t *bp,
+  void ibqObjectInit(input_buffers_queue_t *ibqp, uint8_t *bp,
                      size_t size, size_t n,
                      bqnotify_t infy, void *link);
   void ibqResetI(input_buffers_queue_t *ibqp);

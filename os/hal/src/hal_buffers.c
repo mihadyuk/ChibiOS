@@ -19,6 +19,20 @@
  * @brief   I/O Buffers code.
  *
  * @addtogroup HAL_BUFFERS
+ * @details Buffers Queues are used when there is the need to exchange
+ *          fixed-length data buffers between ISRs and threads.
+ *          On the ISR side data can be exchanged only using buffers,
+ *          on the thread side data can be exchanged both using buffers and/or
+ *          using an emulation of regular byte queues.
+ *          There are several kind of buffers queues:<br>
+ *          - <b>Input queue</b>, unidirectional queue where the writer is the
+ *            ISR side and the reader is the thread side.
+ *          - <b>Output queue</b>, unidirectional queue where the writer is the
+ *            ISR side and the reader is the thread side.
+ *          - <b>Full duplex queue</b>, bidirectional queue. Full duplex queues
+ *            are implemented by pairing an input queue and an output queue
+ *            together.
+ *          .
  * @{
  */
 
@@ -62,7 +76,7 @@ void ibqObjectInit(input_buffers_queue_t *ibqp, uint8_t *bp,
                    size_t size, size_t n,
                    bqnotify_t infy, void *link) {
 
-  osalDbgCheck((ibqp != NULL) && (bp != NULL) && (size >= 2));
+  osalDbgCheck((ibqp != NULL) && (bp != NULL) && (size >= 2U));
 
   osalThreadQueueObjectInit(&ibqp->waiting);
   ibqp->bcounter = 0;
@@ -134,7 +148,7 @@ void ibqPostFullBufferI(input_buffers_queue_t *ibqp, size_t size) {
 
   osalDbgCheckClassI();
 
-  osalDbgCheck((size > 0) && (size <= ibqp->bsize - sizeof (size_t)));
+  osalDbgCheck((size > 0U) && (size <= (ibqp->bsize - sizeof (size_t))));
   osalDbgAssert(!ibqIsFullI(ibqp), "buffers queue full");
 
   /* Writing size field in the buffer.*/
@@ -155,7 +169,7 @@ void ibqPostFullBufferI(input_buffers_queue_t *ibqp, size_t size) {
  * @brief   Gets the next filled buffer from the queue.
  * @note    The function always acquires the same buffer if called repeatedly.
  * @post    After calling the function the fields @p ptr and @p top are set
- *          at beginning and end of the buffer data or @NULL if the queue
+ *          at beginning and end of the buffer data or @p NULL if the queue
  *          is empty.
  *
  * @param[in] ibqp      pointer to the @p input_buffers_queue_t object
@@ -186,7 +200,7 @@ msg_t ibqGetFullBufferTimeout(input_buffers_queue_t *ibqp,
    * @brief   Gets the next filled buffer from the queue.
    * @note    The function always acquires the same buffer if called repeatedly.
    * @post    After calling the function the fields @p ptr and @p top are set
-   *          at beginning and end of the buffer data or @NULL if the queue
+   *          at beginning and end of the buffer data or @p NULL if the queue
    *          is empty.
    *
    * @param[in] ibqp      pointer to the @p input_buffers_queue_t object
@@ -300,7 +314,7 @@ msg_t ibqGetTimeout(input_buffers_queue_t *ibqp, systime_t timeout) {
   }
 
   /* Next byte from the buffer.*/
-  msg = *ibqp->ptr;
+  msg = (msg_t)*ibqp->ptr;
   ibqp->ptr++;
 
   /* If the current buffer has been fully read then it is returned as
@@ -382,19 +396,19 @@ size_t ibqReadTimeout(input_buffers_queue_t *ibqp, uint8_t *bp,
     }
 
     /* Size of the data chunk present in the current buffer.*/
-    size = ibqp->top - ibqp->ptr;
-    if (size > n - r) {
+    size = (size_t)ibqp->top - (size_t)ibqp->ptr;
+    if (size > (n - r)) {
       size = n - r;
     }
 
     /* Smaller chunks in order to not make the critical zone too long,
        this impacts throughput however.*/
-    if (size > 64) {
+    if (size > 64U) {
       /* Giving the compiler a chance to optimize for a fixed size move.*/
-      memcpy(bp, ibqp->ptr, 64);
-      bp        += 64;
-      ibqp->ptr += 64;
-      r         += 64;
+      memcpy(bp, ibqp->ptr, 64U);
+      bp        += 64U;
+      ibqp->ptr += 64U;
+      r         += 64U;
     }
     else {
       memcpy(bp, ibqp->ptr, size);
@@ -433,7 +447,7 @@ void obqObjectInit(output_buffers_queue_t *obqp, uint8_t *bp,
                    size_t size, size_t n,
                    bqnotify_t onfy, void *link) {
 
-  osalDbgCheck((obqp != NULL) && (bp != NULL) && (size >= 2));
+  osalDbgCheck((obqp != NULL) && (bp != NULL) && (size >= 2U));
 
   osalThreadQueueObjectInit(&obqp->waiting);
   obqp->bcounter = n;
@@ -525,7 +539,7 @@ void obqReleaseEmptyBufferI(output_buffers_queue_t *obqp) {
  * @brief   Gets the next empty buffer from the queue.
  * @note    The function always acquires the same buffer if called repeatedly.
  * @post    After calling the function the fields @p ptr and @p top are set
- *          at beginning and end of the buffer data or @NULL if the queue
+ *          at beginning and end of the buffer data or @p NULL if the queue
  *          is empty.
  *
  * @param[in] obqp      pointer to the @p output_buffers_queue_t object
@@ -556,7 +570,7 @@ msg_t obqGetEmptyBufferTimeout(output_buffers_queue_t *obqp,
    * @brief   Gets the next empty buffer from the queue.
    * @note    The function always acquires the same buffer if called repeatedly.
    * @post    After calling the function the fields @p ptr and @p top are set
-   *          at beginning and end of the buffer data or @NULL if the queue
+   *          at beginning and end of the buffer data or @p NULL if the queue
    *          is empty.
    *
    * @param[in] obqp      pointer to the @p output_buffers_queue_t object
@@ -621,7 +635,7 @@ void obqPostFullBuffer(output_buffers_queue_t *obqp, size_t size) {
 void obqPostFullBufferS(output_buffers_queue_t *obqp, size_t size) {
 
   osalDbgCheckClassS();
-  osalDbgCheck((size > 0) && (size <= obqp->bsize - sizeof (size_t)));
+  osalDbgCheck((size > 0U) && (size <= (obqp->bsize - sizeof (size_t))));
   osalDbgAssert(!obqIsFullI(obqp), "buffers queue full");
 
   /* Writing size field in the buffer.*/
@@ -650,6 +664,7 @@ void obqPostFullBufferS(output_buffers_queue_t *obqp, size_t size) {
  *          new buffer is freed in the queue or a timeout occurs.
  *
  * @param[in] obqp      pointer to the @p output_buffers_queue_t object
+ * @param[in] b         byte value to be transferred
  * @param[in] timeout   the number of ticks before the operation timeouts,
  *                      the following special values are allowed:
  *                      - @a TIME_IMMEDIATE immediate timeout.
@@ -759,19 +774,19 @@ size_t obqWriteTimeout(output_buffers_queue_t *obqp, const uint8_t *bp,
     }
 
     /* Size of the space available in the current buffer.*/
-    size = obqp->top - obqp->ptr;
-    if (size > n - w) {
+    size = (size_t)obqp->top - (size_t)obqp->ptr;
+    if (size > (n - w)) {
       size = n - w;
     }
 
     /* Smaller chunks in order to not make the critical zone too long,
        this impacts throughput however.*/
-    if (size > 64) {
+    if (size > 64U) {
       /* Giving the compiler a chance to optimize for a fixed size move.*/
-      memcpy(obqp->ptr, bp, 64);
-      bp        += 64;
-      obqp->ptr += 64;
-      w         += 64;
+      memcpy(obqp->ptr, bp, 64U);
+      bp        += 64U;
+      obqp->ptr += 64U;
+      w         += 64U;
     }
     else {
       memcpy(obqp->ptr, bp, size);
@@ -814,7 +829,7 @@ bool obqTryFlushI(output_buffers_queue_t *obqp) {
   /* If queue is empty and there is a buffer partially filled and
      it is not being written.*/
   if (obqIsEmptyI(obqp) && (obqp->ptr != NULL)) {
-    size_t size = (size_t)(obqp->ptr - (obqp->bwrptr + sizeof (size_t)));
+    size_t size = (size_t)obqp->ptr - ((size_t)obqp->bwrptr + sizeof (size_t));
 
     if (size > 0U) {
 
@@ -850,7 +865,7 @@ void obqFlush(output_buffers_queue_t *obqp) {
 
   /* If there is a buffer partially filled and not being written.*/
   if (obqp->ptr != NULL) {
-    size_t size = (size_t)(obqp->ptr - obqp->bwrptr);
+    size_t size = (size_t)obqp->ptr - (size_t)obqp->bwrptr;
 
     if (size > 0U) {
       obqPostFullBufferS(obqp, size);

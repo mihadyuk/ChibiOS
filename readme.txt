@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *****************************************************************************
 *** Files Organization                                                    ***
 *****************************************************************************
@@ -74,6 +75,10 @@
 *****************************************************************************
 
 *** 3.0.6 ***
+- HAL: Fixed shift of signed constant causes warnings with IAR compiler
+       (bug #709).
+- NIL: Fixed ARM errata 752419 (bug #706).
+- RT:  Fixed ARM errata 752419 (bug #706).
 - HAL: Fixed chDbgAssert() still called from STM32 SPIv1 driver (bug #704).
 - RT:  Fixed useless call to chTMStartMeasurementX() in _thread_init()
        (bug #697).

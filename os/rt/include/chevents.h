@@ -37,6 +37,14 @@
 /* Module constants.                                                         */
 /*===========================================================================*/
 
+/**
+ * @brief   Event bit reserved for thread termination request.
+ * @note    The most significant bit of the events mask is conventionally
+ *          used for thread termination but it can eventually be used for
+ *          other events.
+ */
+#define CH_EVENT_TERMINATE  ~(((eventmask_t)-1) >> 1U)
+
 /*===========================================================================*/
 /* Module pre-compile time settings.                                         */
 /*===========================================================================*/
@@ -55,16 +63,16 @@ typedef struct event_listener event_listener_t;
  * @brief   Event Listener structure.
  */
 struct event_listener {
-  event_listener_t      *el_next;       /**< @brief Next Event Listener
+  event_listener_t      *next;          /**< @brief Next Event Listener
                                                     registered on the event
                                                     source.                 */
-  thread_t              *el_listener;   /**< @brief Thread interested in the
+  thread_t              *listener;      /**< @brief Thread interested in the
                                                     event source.           */
-  eventmask_t           el_events;      /**< @brief Events to be set in
+  eventmask_t           events;         /**< @brief Events to be set in
                                                     the listening thread.   */
-  eventflags_t          el_flags;       /**< @brief Flags added to the listener
+  eventflags_t          flags;          /**< @brief Flags added to the listener
                                                     by the event source.    */
-  eventflags_t          el_wflags;      /**< @brief Flags that this listener
+  eventflags_t          wflags;         /**< @brief Flags that this listener
                                                     interested in.          */
 };
 
@@ -72,7 +80,7 @@ struct event_listener {
  * @brief   Event Source structure.
  */
 typedef struct event_source {
-  event_listener_t      *es_next;       /**< @brief First Event Listener
+  event_listener_t      *next;          /**< @brief First Event Listener
                                                     registered on the Event
                                                     Source.                 */
 } event_source_t;
@@ -169,7 +177,7 @@ extern "C" {
  */
 static inline void chEvtObjectInit(event_source_t *esp) {
 
-  esp->es_next = (event_listener_t *)esp;
+  esp->next = (event_listener_t *)esp;
 }
 
 /**
@@ -223,7 +231,7 @@ static inline void chEvtRegister(event_source_t *esp,
  */
 static inline bool chEvtIsListeningI(event_source_t *esp) {
 
-  return (bool)(esp != (event_source_t *)esp->es_next);
+  return (bool)(esp != (event_source_t *)esp->next);
 }
 
 /**
@@ -254,6 +262,19 @@ static inline void chEvtBroadcast(event_source_t *esp) {
 static inline void chEvtBroadcastI(event_source_t *esp) {
 
   chEvtBroadcastFlagsI(esp, (eventflags_t)0);
+}
+
+/**
+ * @brief   Returns the events mask.
+ * @details The pending events mask is returned but not altered in any way.
+ *
+ * @return              The pending events mask.
+ *
+ * @api
+ */
+static inline eventmask_t chEvtGetEventsX(void) {
+
+  return currp->epending;
 }
 
 #endif /* CH_CFG_USE_EVENTS == TRUE */

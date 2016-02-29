@@ -35,10 +35,13 @@
   +--ext/                 - External libraries, not part of ChibiOS/RT.
   +--os/                  - ChibiOS components.
   |  +--common/           - Shared OS modules.
-  |  +--common/ext/       - Vendor files used by the OS.
-  |  +--common/oslib/     - RTOS modules usable by both RT and NIL.
-  |  +--common/ports/     - RTOS ports usable by both RT and NIL.
-  |  +--common/startup/   - Startup support for all compilers and platforms.
+  |  |  +--abstractions/  - API emulator wrappers.
+  |  |  |  +--cmsis_os/   - CMSIS OS emulation layer for RT (ARMCMx port only).
+  |  |  |  +--nasa_osal/  - NASA Operating System Abstraction Layer for RT.
+  |  |  +--ext/           - Vendor files used by the OS.
+  |  |  +--oslib/         - RTOS modules usable by both RT and NIL.
+  |  |  +--ports/         - RTOS ports usable by both RT and NIL.
+  |  |  +--startup/       - Startup support for all compilers and platforms.
   |  +--hal/              - HAL component.
   |  |  +--boards/        - HAL board support files.
   |  |  +--dox/           - HAL documentation resources.
@@ -76,6 +79,7 @@
 *****************************************************************************
 
 *** Next ***
+- ALL: Startup files relicensed under Apache 2.0.
 - VAR: The shell now accepts quoted arguments.
 - VAR: Centralized all usual shell commands into a single shell_cmd.c
        file. This will allow to update all demos with a single change.
@@ -89,6 +93,9 @@
 - RT:  Removed the p_msg field from the thread_t structure saving a
        msg_t-sized field from the structure. Messages now use a new field
        into the p_u union. Now synchronous messages are even faster.
+- HAL: Fixed IAR warnings in ext_lld_isr.c (bug #711)(backported to 16.1.4).
+- HAL: Fixed build error caused by STM32 SPIv1 driver (bug #710)(backported
+       to 3.0.6 and 16.1.4).
 - HAL: Fixed shift of signed constant causes warnings with IAR compiler
        (bug #709)(backported to 2.6.10, 3.0.6 and 16.1.4).
 - HAL: Fixed wrong RTCv2 settings for STM32L4 (bug #708)(backported

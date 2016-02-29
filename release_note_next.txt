@@ -17,20 +17,22 @@ a series of important new features.
   are usable by both RT and NIL.
 - Shared ports architecture. Now RTOS ports work for both RT and NIL, no
   more duplication.
+- MPU use for hardware stack checking in ARMCMx port.
 - Enhanced shell.
 
 *** What's new in RT 4.0.0 ***
 
 - Common ports architecture.
 - Ability to use the new shared RTOS components.
-- Enhanced trace buffer, it is able to store events regarding not just threads
-  but also IRQs, halts and user events.
-- Simplified the dynamic threading model, now it is the thread creator
-  responsible for memory release, the references counter has been removed
-  and the code is much simpler.
 - New threading API, now creating static threads is even faster.
-- Saved space in thread_t structure.
-- Extended priority range to 1..255.
+- Extended priority range from 1..127 to 1..255.
+- Enhanced dynamic threading, safer and easier to use.
+- Enhanced Registry, it is now possible to find threads by name, by pointer
+  or by working area.
+- Enhanced trace buffer, it is able to store events regarding not just threads
+  but also IRQs, halts and user events. The trace record now stores both the
+  "slow" system time and a RT stamp for increased accuracy.
+- New kernel hooks for a more flexible code instrumentation.
 - Experimental NASA OSAL implementation.
 
 *** What's new in HAL 4.1.0 ***
@@ -41,4 +43,4 @@ a series of important new features.
 - Common ports architecture.
 - Ability to use the new shared RTOS components.
 - State checker.
-- Parameter checks.
+- Parameters checks.

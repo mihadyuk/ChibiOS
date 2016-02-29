@@ -108,6 +108,9 @@ extern "C" {
   extern ROMCONST chdebug_t ch_debug;
   thread_t *chRegFirstThread(void);
   thread_t *chRegNextThread(thread_t *tp);
+  thread_t *chRegFindThreadByName(const char *name);
+  thread_t *chRegFindThreadByPointer(thread_t *tp);
+  thread_t *chRegFindThreadByWorkingArea(stkalign_t *wa);
 #ifdef __cplusplus
 }
 #endif

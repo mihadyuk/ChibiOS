@@ -23,7 +23,6 @@
  *
  * @addtogroup dynamic_threads
  * @details Dynamic threads related APIs and services.
- * @note    Compatible with RT only.
  * @{
  */
 
@@ -83,6 +82,7 @@
 thread_t *chThdCreateFromHeap(memory_heap_t *heapp, size_t size,
                               const char *name, tprio_t prio,
                               tfunc_t pf, void *arg) {
+  thread_t *tp;
   void *wsp;
 
   wsp = chHeapAllocAligned(heapp, size, PORT_WORKING_AREA_ALIGN);
@@ -99,24 +99,19 @@ thread_t *chThdCreateFromHeap(memory_heap_t *heapp, size_t size,
     arg
   };
 
-  return chThdCreate(&td);
-}
+#if CH_DBG_FILL_THREADS == TRUE
+  _thread_memfill((uint8_t *)wsp,
+                  (uint8_t *)wsp + size,
+                  CH_DBG_STACK_FILL_VALUE);
+#endif
 
-/**
- * @brief   Releases a thread working area into the owner heap.
- * @pre     The thread must have been created using @p chThdCreateFromHeap().
- * @pre     The thread must be in the state @p CH_STATE_FINAL (terminated).
- *
- * @param[in] tp        the pointer to the thread
- *
- * @api
- */
-void chThdFreeToHeap(thread_t *tp) {
+  chSysLock();
+  tp = chThdCreateSuspendedI(&td);
+  tp->flags = CH_FLAG_MODE_HEAP;
+  chSchWakeupS(tp, MSG_OK);
+  chSysUnlock();
 
-  chDbgCheck(tp != NULL);
-  chDbgAssert(tp->state == CH_STATE_FINAL, "not terminated");
-
-  chHeapFree(chthdGetStackLimitX(tp));
+  return tp;
 }
 #endif /* CH_CFG_USE_HEAP == TRUE */
 
@@ -149,6 +144,7 @@ void chThdFreeToHeap(thread_t *tp) {
  */
 thread_t *chThdCreateFromMemoryPool(memory_pool_t *mp, const char *name,
                                     tprio_t prio, tfunc_t pf, void *arg) {
+  thread_t *tp;
   void *wsp;
 
   chDbgCheck(mp != NULL);
@@ -167,25 +163,21 @@ thread_t *chThdCreateFromMemoryPool(memory_pool_t *mp, const char *name,
     arg
   };
 
-  return chThdCreate(&td);
-}
+#if CH_DBG_FILL_THREADS == TRUE
+  _thread_memfill((uint8_t *)wsp,
+                  (uint8_t *)wsp + mp->object_size,
+                  CH_DBG_STACK_FILL_VALUE);
+#endif
 
-/**
- * @brief   Releases a thread working area into a memory pool.
- * @pre     The thread must have been created using @p chThdCreateFromMemoryPool().
- * @pre     The thread must be in the state @p CH_STATE_FINAL (terminated).
- *
- * @param[in] tp        the pointer to the thread
- * @param[in] mp        pointer to a @p memory_pool_t structure
- *
- * @api
- */
-void chThdFreeToMemoryPool(thread_t *tp, memory_pool_t *mp) {
 
-  chDbgCheck((tp != NULL) && (mp != NULL));
-  chDbgAssert(tp->state == CH_STATE_FINAL, "not terminated");
+  chSysLock();
+  tp = chThdCreateSuspendedI(&td);
+  tp->flags = CH_FLAG_MODE_MPOOL;
+  tp->mpool = mp;
+  chSchWakeupS(tp, MSG_OK);
+  chSysUnlock();
 
-  chPoolFree(mp, (void *)chthdGetStackLimitX(tp));
+  return tp;
 }
 #endif /* CH_CFG_USE_MEMPOOLS == TRUE */
 

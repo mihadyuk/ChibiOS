@@ -15,6 +15,7 @@
 */
 
 #include "hal.h"
+#include "ch_test.h"
 #include "osapi.h"
 
 /*
@@ -29,9 +30,9 @@ static void blinker(void) {
   OS_TaskRegister();
 
   while (true) {
-    palSetPad(GPIOD, GPIOD_LED3);       /* Orange.  */
+    palSetLine(LINE_LED3);       /* Orange.  */
     OS_TaskDelay(500);
-    palClearPad(GPIOD, GPIOD_LED3);     /* Orange.  */
+    palClearLine(LINE_LED3);     /* Orange.  */
     OS_TaskDelay(500);
   }
 }
@@ -62,9 +63,10 @@ int main(void) {
 
   /* In the ChibiOS/RT OSAL implementation the main() function is an
      usable thread with priority 128 (NORMALPRIO), here we just sleep
-     in a loop printing a message on the serial port.*/
+     waiting for a button event, then the test suite is executed.*/
   while (true) {
-    sdWrite(&SD2, (uint8_t *)"Hello World!\r\n", 14);
+    if (palReadLine(LINE_BUTTON))
+      test_execute((BaseSequentialStream *)&SD2);
     OS_TaskDelay(500);
   }
 }

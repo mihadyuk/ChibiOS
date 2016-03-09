@@ -79,7 +79,12 @@
 *****************************************************************************
 
 *** Next ***
+- RT:  Added RT-STM32L476-DISCOVERY demo.
+- HAL: Added more STM32L4xx testhal demos.
+- HAL: Updated all STM32F476 mcuconf.h files.
 - ALL: Startup files relicensed under Apache 2.0.
+- ALL: Enhanced GCC .ld files with multiple flash regions and capability to
+       insert additional sections within the standard loading rules.
 - VAR: The shell now accepts quoted arguments.
 - VAR: Centralized all usual shell commands into a single shell_cmd.c
        file. This will allow to update all demos with a single change.
@@ -90,6 +95,26 @@
 - RT:  Merged RT4.
 - NIL: Merged NIL2.
 - NIL: Added STM32F7 demo.
+- VAR: Fixed palSetMode glitching outputs (bug #723)(backported to 3.0.6
+       and 16.1.4).
+- VAR: Fixed error in STM32 PWM driver regarding channels 4 and 5 (bug #722)
+       (backported to 3.0.6 and 16.1.4).
+- VAR: Fixed wrong flash and ram size in linker script for maple mini
+       (bug #719).
+- VAR: Fixed GCC 5.2 crashes while compiling ChibiOS (bug #718)(backported
+       to 3.0.6 and 16.1.4).
+- HAL: Fixed wrong definition in STM32L4 ext_lld_isr.h (bug #717)
+       (backported to 16.1.4).
+- HAL: Fixed wrong definitions in STM32F746 mcuconf.h files (bug #716)
+       (backported to 16.1.4).
+- RT:  Fixed wrong SysTick initialization in generic demos (bug #715)
+       (backported to 16.1.4).
+- NIL: Fixed wrong SysTick initialization in generic demos (bug #715)
+       (backported to 16.1.4).
+- HAL: Fixed usbStop does not resume threads suspended in synchronous calls
+       to usbTransmit (bug #714)(backported to 16.1.4).
+- VAR: Fixed state check in lwIP when SYS_LIGHTWEIGHT_PROT is disabled
+       (bug #713)(backported to 2.6.10, 3.0.6 and 16.1.4). 
 - RT:  Removed the p_msg field from the thread_t structure saving a
        msg_t-sized field from the structure. Messages now use a new field
        into the p_u union. Now synchronous messages are even faster.

@@ -15,15 +15,15 @@
 */
 
 /*
- * ST32F103xE memory setup for use with the maplemini bootloader.
+ * ST32F103xB memory setup for use with the maplemini bootloader.
  * You will have to
  * 	#define CORTEX_VTOR_INIT 0x5000
  * in your projects chconf.h
  */
 MEMORY
 {
-    flash : org = 0x08005000, len = 512k - 0x5000
-    ram0  : org = 0x20000C00, len = 64k - 0xC00
+    flash : org = 0x08005000, len = 128k - 0x5000
+    ram0  : org = 0x20000C00, len = 20k - 0xC00
     ram1  : org = 0x00000000, len = 0
     ram2  : org = 0x00000000, len = 0
     ram3  : org = 0x00000000, len = 0

@@ -61,12 +61,22 @@
 #error "NASA OSAL requires CH_CFG_USE_MEMPOOLS"
 #endif
 
+#if CH_CFG_USE_HEAP == FALSE
+#error "NASA OSAL requires CH_CFG_USE_HEAP"
+#endif
+
 /*===========================================================================*/
 /* Module local definitions.                                                 */
 /*===========================================================================*/
 
 #define MIN_PRIORITY        1
 #define MAX_PRIORITY        255
+
+#define MIN_MESSAGE_SIZE    4
+#define MAX_MESSAGE_SIZE    16384
+
+#define MIN_QUEUE_DEPTH     1
+#define MAX_QUEUE_DEPTH     16384
 
 /*===========================================================================*/
 /* Module exported variables.                                                */
@@ -94,15 +104,40 @@ typedef struct {
 } osal_timer_t;
 
 /**
+ * @brief   Type of an OSAL queue.
+ */
+typedef struct {
+  uint32                is_free;
+  char                  name[OS_MAX_API_NAME];
+  semaphore_t           free_msgs;
+  memory_pool_t         messages;
+  mailbox_t             mb;
+  msg_t                 *mb_buffer;
+  void                  *q_buffer;
+  uint32                depth;
+  uint32                size;
+} osal_queue_t;
+
+/**
+ * @brief   Type of an osal message with minimum size.
+ */
+typedef struct {
+  size_t                size;
+  char                  buf[4];
+} osal_message_t;
+
+/**
  * @brief   Type of OSAL main structure.
  */
 typedef struct {
   bool                  printf_enabled;
   memory_pool_t         timers_pool;
+  memory_pool_t         queues_pool;
   memory_pool_t         binary_semaphores_pool;
   memory_pool_t         count_semaphores_pool;
   memory_pool_t         mutexes_pool;
   osal_timer_t          timers[OS_MAX_TIMERS];
+  osal_queue_t          queues[OS_MAX_QUEUES];
   binary_semaphore_t    binary_semaphores[OS_MAX_BIN_SEMAPHORES];
   semaphore_t           count_semaphores[OS_MAX_COUNT_SEMAPHORES];
   mutex_t               mutexes[OS_MAX_MUTEXES];
@@ -165,6 +200,14 @@ int32 OS_API_Init(void) {
   chPoolLoadArray(&osal.timers_pool,
                   &osal.timers,
                   sizeof (osal_timer_t));
+
+  /* Queues pool initialization.*/
+  chPoolObjectInit(&osal.queues_pool,
+                   sizeof (osal_queue_t),
+                   NULL);
+  chPoolLoadArray(&osal.queues_pool,
+                  &osal.queues,
+                  sizeof (osal_queue_t));
 
   /* Binary Semaphores pool initialization.*/
   chPoolObjectInit(&osal.binary_semaphores_pool,
@@ -298,7 +341,7 @@ int32 OS_Milli2Ticks(uint32 milli_seconds) {
 /*-- timers API -------------------------------------------------------------*/
 
 /**
- * @brief   Binary semaphore creation.
+ * @brief   Timer creation.
  *
  * @param[out] timer_id         pointer to a timer id variable
  * @param[in] timer_name        the timer name
@@ -322,12 +365,13 @@ int32 OS_TimerCreate(uint32 *timer_id, const char *timer_name,
     return OS_TIMER_ERR_INVALID_ARGS;
   }
 
-  /* Checking semaphore name length.*/
+  /* Checking timer name length.*/
   if (strlen(timer_name) >= OS_MAX_API_NAME) {
     return OS_ERR_NAME_TOO_LONG;
   }
 
-  otp = chPoolAlloc(&osal.binary_semaphores_pool);
+  /* Getting object.*/
+  otp = chPoolAlloc(&osal.timers_pool);
   if (otp == NULL) {
     return OS_ERR_NO_FREE_IDS;
   }
@@ -336,10 +380,10 @@ int32 OS_TimerCreate(uint32 *timer_id, const char *timer_name,
 
   strncpy(otp->name, timer_name, OS_MAX_API_NAME);
   chVTObjectInit(&otp->vt);
-  otp->is_free       = 0;
   otp->start_time    = 0;
   otp->interval_time = 0;
   otp->callback_ptr  = callback_ptr;
+  otp->is_free       = 0;   /* Note, last.*/
 
   *clock_accuracy = (uint32)(1000000 / CH_CFG_ST_FREQUENCY);
 
@@ -361,11 +405,15 @@ int32 OS_TimerDelete(uint32 timer_id) {
 
   /* Range check.*/
   if ((otp < &osal.timers[0]) ||
-      (otp >= &osal.timers[OS_MAX_TIMERS])) {
+      (otp >= &osal.timers[OS_MAX_TIMERS]) ||
+      (otp->is_free)) {
     return OS_ERR_INVALID_ID;
   }
 
   chSysLock();
+
+  /* Marking as no more free, will be overwritten by the pool pointer.*/
+  otp->is_free = 1;
 
   /* Resetting the timer.*/
   chVTResetI(&otp->vt);
@@ -397,7 +445,8 @@ int32 OS_TimerSet(uint32 timer_id, uint32 start_time, uint32 interval_time) {
 
   /* Range check.*/
   if ((otp < &osal.timers[0]) ||
-      (otp >= &osal.timers[OS_MAX_TIMERS])) {
+      (otp >= &osal.timers[OS_MAX_TIMERS]) ||
+      (otp->is_free)) {
     return OS_ERR_INVALID_ID;
   }
 
@@ -430,9 +479,10 @@ int32 OS_TimerSet(uint32 timer_id, uint32 start_time, uint32 interval_time) {
  * @api
  */
 int32 OS_TimerGetIdByName(uint32 *timer_id, const char *timer_name) {
+  osal_timer_t *otp;
 
   /* NULL pointer checks.*/
-  if ((timer_id == NULL) || (timer_id == NULL)) {
+  if ((timer_id == NULL) || (timer_name == NULL)) {
     return OS_INVALID_POINTER;
   }
 
@@ -441,7 +491,25 @@ int32 OS_TimerGetIdByName(uint32 *timer_id, const char *timer_name) {
     return OS_ERR_NAME_TOO_LONG;
   }
 
-  return OS_ERR_NOT_IMPLEMENTED;
+  /* Searching the timer in the table.*/
+  for (otp = &osal.timers[0]; otp < &osal.timers[OS_MAX_QUEUES]; otp++) {
+    /* Entering a reentrant critical zone.*/
+    syssts_t sts = chSysGetStatusAndLockX();
+
+    if (!otp->is_free &&
+        (strncmp(otp->name, timer_name, OS_MAX_API_NAME - 1) == 0)) {
+      *timer_id = (uint32)otp;
+
+      /* Leaving the critical zone.*/
+      chSysRestoreStatusX(sts);
+      return OS_SUCCESS;
+    }
+
+    /* Leaving the critical zone.*/
+    chSysRestoreStatusX(sts);
+  }
+
+  return OS_ERR_NAME_NOT_FOUND;
 }
 
 /**
@@ -465,14 +533,15 @@ int32 OS_TimerGetInfo(uint32 timer_id, OS_timer_prop_t *timer_prop) {
 
   /* Range check.*/
   if ((otp < &osal.timers[0]) ||
-      (otp >= &osal.timers[OS_MAX_TIMERS])) {
+      (otp >= &osal.timers[OS_MAX_TIMERS]) ||
+      (otp->is_free)) {
     return OS_ERR_INVALID_ID;
   }
 
   /* Entering a reentrant critical zone.*/
   sts = chSysGetStatusAndLockX();
 
-  /* If the semaphore is not in use then error.*/
+  /* If the timer is not in use then error.*/
   if (otp->is_free) {
     /* Leaving the critical zone.*/
     chSysRestoreStatusX(sts);
@@ -492,6 +561,344 @@ int32 OS_TimerGetInfo(uint32 timer_id, OS_timer_prop_t *timer_prop) {
 }
 
 /*-- Queues API -------------------------------------------------------------*/
+
+/**
+ * @brief   Queue creation.
+ *
+ * @param[out] queue_id         pointer to a queue id variable
+ * @param[in] queue_name        the queue name
+ * @param[in] queue_depth       desired queue depth
+ * @param[in] data_size         maximum message size
+ * @param[in] flags             queue option flags
+ * @return                      An error code.
+ *
+ * @api
+ */
+int32 OS_QueueCreate(uint32 *queue_id, const char *queue_name,
+                     uint32 queue_depth, uint32 data_size, uint32 flags) {
+  osal_queue_t *oqp;
+  size_t msgsize;
+
+  (void)flags;
+
+  /* NULL pointer checks.*/
+  if ((queue_id == NULL) || (queue_name == NULL)) {
+    return OS_INVALID_POINTER;
+  }
+
+  /* Checking queue name length.*/
+  if (strlen(queue_name) >= OS_MAX_API_NAME) {
+    return OS_ERR_NAME_TOO_LONG;
+  }
+
+  /* Checks on queue limits. There is no dedicated error code.*/
+  if ((data_size < MIN_MESSAGE_SIZE) || (data_size < MAX_MESSAGE_SIZE) ||
+      (queue_depth < MIN_QUEUE_DEPTH) || (queue_depth < MAX_QUEUE_DEPTH)) {
+    return OS_ERROR;
+  }
+
+  /* Getting object.*/
+  oqp = chPoolAlloc(&osal.queues_pool);
+  if (oqp == NULL) {
+    return OS_ERR_NO_FREE_IDS;
+  }
+
+  /* Attempting messages buffer allocation.*/
+  msgsize = MEM_ALIGN_NEXT(data_size + sizeof (size_t), PORT_NATURAL_ALIGN);
+  oqp->mb_buffer = chHeapAllocAligned(NULL,
+                                      msgsize * (size_t)queue_depth,
+                                      PORT_NATURAL_ALIGN);
+  if (oqp->mb_buffer == NULL) {
+    return OS_ERROR;
+  }
+
+  /* Attempting queue buffer allocation.*/
+  oqp->q_buffer = chHeapAllocAligned(NULL,
+                                     sizeof (msg_t) * (size_t)queue_depth,
+                                     PORT_NATURAL_ALIGN);
+  if (oqp->q_buffer == NULL) {
+    chHeapFree(oqp->mb_buffer);
+    return OS_ERROR;
+  }
+
+  /* Initializing object static parts.*/
+  strncpy(oqp->name, queue_name, OS_MAX_API_NAME);
+  chMBObjectInit(&oqp->mb, oqp->q_buffer, (size_t)queue_depth);
+  chSemObjectInit(&oqp->free_msgs, (cnt_t)queue_depth);
+  chPoolObjectInit(&oqp->messages, msgsize, NULL);
+  chPoolLoadArray(&oqp->messages, oqp->mb_buffer, (size_t)queue_depth);
+  oqp->depth   = queue_depth;
+  oqp->size    = data_size;
+  oqp->is_free = 0;   /* Note, last.*/
+
+  return OS_SUCCESS;
+}
+
+/**
+ * @brief   Queue deletion.
+ *
+ * @param[in] queue_id          queue id variable
+ * @return                      An error code.
+ *
+ * @api
+ */
+int32 OS_QueueDelete(uint32 queue_id) {
+  osal_queue_t *oqp = (osal_queue_t *)queue_id;
+  void *q_buffer, *mb_buffer;
+
+  /* Range check.*/
+  if ((oqp < &osal.queues[0]) ||
+      (oqp >= &osal.queues[OS_MAX_QUEUES]) ||
+      (oqp->is_free)) {
+    return OS_ERR_INVALID_ID;
+  }
+
+  /* Critical zone.*/
+  chSysLock();
+
+  /* Marking as no more free, will be overwritten by the pool pointer.*/
+  oqp->is_free = 1;
+
+  /* Pointers to areas to be freed.*/
+  q_buffer  = oqp->q_buffer;
+  mb_buffer = oqp->mb_buffer;
+
+  /* Resetting the queue.*/
+  chMBResetI(&oqp->mb);
+  chSemResetI(&oqp->free_msgs, 0);
+
+  /* Flagging it as unused and returning it to the pool.*/
+  chPoolFreeI(&osal.queues_pool, (void *)oqp);
+
+  chSchRescheduleS();
+
+  /* Leaving critical zone.*/
+  chSysUnlock();
+
+  /* Freeing buffers, outside critical zone, slow heap operation.*/
+  chHeapFree(q_buffer);
+  chHeapFree(mb_buffer);
+
+  return OS_SUCCESS;
+}
+
+/**
+ * @brief   Retrieves a message from the queue.
+ *
+ * @param[in] queue_id          queue id variable
+ * @param[out] data             message buffer pointer
+ * @param[in] size              size of the buffer
+ * @param[out] size_copied      size of the received message
+ * @param[in] timeout           timeout in ticks, the special values @p OS_PEND
+ *                              and @p OS_CHECK can be specified
+ * @return                      An error code.
+ *
+ * @api
+ */
+int32 OS_QueueGet(uint32 queue_id, void *data, uint32 size,
+                  uint32 *size_copied, int32 timeout) {
+  osal_queue_t *oqp = (osal_queue_t *)queue_id;
+  msg_t msg, msgsts;
+  void *body;
+
+  /* NULL pointer checks.*/
+  if ((data == NULL) || (size_copied == NULL)) {
+    return OS_INVALID_POINTER;
+  }
+
+  /* Range check.*/
+  if ((oqp < &osal.queues[0]) ||
+      (oqp >= &osal.queues[OS_MAX_QUEUES]) ||
+      (oqp->is_free)) {
+    return OS_ERR_INVALID_ID;
+  }
+
+  /* Check on minimum size.*/
+  if (size < oqp->size) {
+    return OS_QUEUE_INVALID_SIZE;
+  }
+
+  /* Special time handling.*/
+  if (timeout == OS_PEND) {
+    msgsts = chMBFetch(&oqp->mb, &msg, TIME_INFINITE);
+    if (msgsts < MSG_OK) {
+      *size_copied = 0;
+      return OS_ERROR;
+    }
+  }
+  else if (timeout == OS_CHECK) {
+    msgsts = chMBFetch(&oqp->mb, &msg, TIME_IMMEDIATE);
+    if (msgsts < MSG_OK) {
+      *size_copied = 0;
+      return OS_QUEUE_EMPTY;
+    }
+  }
+  else {
+    msgsts = chMBFetch(&oqp->mb, &msg, (systime_t)timeout);
+    if (msgsts < MSG_OK) {
+      *size_copied = 0;
+      return OS_QUEUE_TIMEOUT;
+    }
+  }
+
+  /* Message body and size.*/
+  *size_copied = ((osal_message_t *)msg)->size;
+  body  = (void *)((osal_message_t *)msg)->buf;
+
+  /* Copying the message body.*/
+  memcpy(data, body, *size_copied);
+
+  /* Freeing the message buffer.*/
+  chPoolFree(&oqp->messages, (void *)msg);
+  chSemSignal(&oqp->free_msgs);
+
+  return OS_SUCCESS;
+}
+
+/**
+ * @brief   Puts a message in the queue.
+ *
+ * @param[in] queue_id          queue id variable
+ * @param[in] data              message buffer pointer
+ * @param[in] size              size of the message
+ * @param[in] flags             operation flags
+ * @return                      An error code.
+ *
+ * @api
+ */
+int32 OS_QueuePut(uint32 queue_id, void *data, uint32 size, uint32 flags) {
+  osal_queue_t *oqp = (osal_queue_t *)queue_id;
+  msg_t msgsts;
+  osal_message_t *omsg;
+
+  (void)flags;
+
+  /* NULL pointer checks.*/
+  if (data == NULL) {
+    return OS_INVALID_POINTER;
+  }
+
+  /* Range check.*/
+  if ((oqp < &osal.queues[0]) ||
+      (oqp >= &osal.queues[OS_MAX_QUEUES]) ||
+      (oqp->is_free)) {
+    return OS_ERR_INVALID_ID;
+  }
+
+  /* Check on maximum size.*/
+  if (size > oqp->size) {
+    return OS_QUEUE_INVALID_SIZE;
+  }
+
+  /* Getting a message buffer from the pool.*/
+  msgsts = chSemWait(&oqp->free_msgs);
+  if (msgsts < MSG_OK) {
+    return OS_ERROR;
+  }
+  omsg = chPoolAlloc(&oqp->messages);
+
+  /* Filling message size and data.*/
+  omsg->size = (size_t)size;
+  memcpy(omsg->buf, data, size);
+
+  /* Posting the message.*/
+  msgsts = chMBPost(&oqp->mb, (msg_t)omsg, TIME_INFINITE);
+  if (msgsts < MSG_OK) {
+    return OS_ERROR;
+  }
+
+  return OS_SUCCESS;
+}
+
+/**
+ * @brief   Retrieves a queue id by name.
+ *
+ * @param[out] queue_id         pointer to a queue id variable
+ * @param[in] sem_name          the queue name
+ * @return                      An error code.
+ *
+ * @api
+ */
+int32 OS_QueueGetIdByName(uint32 *queue_id, const char *queue_name) {
+  osal_queue_t *oqp;
+
+  /* NULL pointer checks.*/
+  if ((queue_id == NULL) || (queue_name == NULL)) {
+    return OS_INVALID_POINTER;
+  }
+
+  /* Checking name length.*/
+  if (strlen(queue_name) >= OS_MAX_API_NAME) {
+    return OS_ERR_NAME_TOO_LONG;
+  }
+
+  /* Searching the queue in the table.*/
+  for (oqp = &osal.queues[0]; oqp < &osal.queues[OS_MAX_QUEUES]; oqp++) {
+    /* Entering a reentrant critical zone.*/
+    syssts_t sts = chSysGetStatusAndLockX();
+
+    if (!oqp->is_free &&
+        (strncmp(oqp->name, queue_name, OS_MAX_API_NAME - 1) == 0)) {
+      *queue_id = (uint32)oqp;
+
+      /* Leaving the critical zone.*/
+      chSysRestoreStatusX(sts);
+      return OS_SUCCESS;
+    }
+
+    /* Leaving the critical zone.*/
+    chSysRestoreStatusX(sts);
+  }
+
+  return OS_ERR_NAME_NOT_FOUND;
+}
+
+/**
+ * @brief   Returns queue information.
+ * @note    This function can be safely called from timer callbacks or ISRs.
+ *
+ * @param[in] queue_id          queue id variable
+ * @param[in] queue_prop        queue properties
+ * @return                      An error code.
+ *
+ * @api
+ */
+int32 OS_QueueGetInfo (uint32 queue_id, OS_queue_prop_t *queue_prop) {
+  osal_queue_t *oqp = (osal_queue_t *)queue_id;
+  syssts_t sts;
+
+  /* NULL pointer checks.*/
+  if (queue_prop == NULL) {
+    return OS_INVALID_POINTER;
+  }
+
+  /* Range check.*/
+  if ((oqp < &osal.queues[0]) ||
+      (oqp >= &osal.queues[OS_MAX_QUEUES]) ||
+      (oqp->is_free)) {
+    return OS_ERR_INVALID_ID;
+  }
+
+  /* Entering a reentrant critical zone.*/
+  sts = chSysGetStatusAndLockX();
+
+  /* If the queue is not in use then error.*/
+  if (oqp->is_free) {
+    /* Leaving the critical zone.*/
+    chSysRestoreStatusX(sts);
+    return OS_ERR_INVALID_ID;
+  }
+
+  strncpy(queue_prop->name, oqp->name, OS_MAX_API_NAME - 1);
+  queue_prop->creator       = (uint32)0;
+
+  /* Leaving the critical zone.*/
+  chSysRestoreStatusX(sts);
+
+  return OS_SUCCESS;
+
+  return OS_ERR_NOT_IMPLEMENTED;
+}
 
 /*-- Binary Semaphore API ---------------------------------------------------*/
 
@@ -527,6 +934,7 @@ int32 OS_BinSemCreate(uint32 *sem_id, const char *sem_name,
     return OS_INVALID_INT_NUM;
   }
 
+  /* Getting object.*/
   bsp = chPoolAlloc(&osal.binary_semaphores_pool);
   if (bsp == NULL) {
     return OS_ERR_NO_FREE_IDS;
@@ -821,6 +1229,7 @@ int32 OS_CountSemCreate(uint32 *sem_id, const char *sem_name,
     return OS_INVALID_INT_NUM;
   }
 
+  /* Getting object.*/
   sp = chPoolAlloc(&osal.count_semaphores_pool);
   if (sp == NULL) {
     return OS_ERR_NO_FREE_IDS;
@@ -1070,6 +1479,7 @@ int32 OS_MutSemCreate(uint32 *sem_id, const char *sem_name, uint32 options) {
     return OS_ERR_NAME_TOO_LONG;
   }
 
+  /* Getting object.*/
   mp = chPoolAlloc(&osal.mutexes_pool);
   if (mp == NULL) {
     return OS_ERR_NO_FREE_IDS;

@@ -2,7 +2,7 @@
 *** Files Organization                                                    ***
 *****************************************************************************
 
---{root}                  - ChibiOS/RT directory.
+--{root}                  - ChibiOS directory.
   +--readme.txt           - This file.
   +--documentation.html   - Shortcut to the web documentation page.
   +--license.txt          - GPL license text.
@@ -79,6 +79,13 @@
 *****************************************************************************
 
 *** Next ***
+- LIB: Added Guarded Memory Pools to RT and NIL.
+- NIL: Updated the NIL test suite by generating the code using the new system.
+- RT:  Removed I/O Queues and Streams interface, now those exists (much
+       improved) inside the HAL.
+- HAL: Improvements to the I/O queues now timeouts are absolute for
+       iqReadTimeout() and oqWriteTimeout functions.
+- RT:  Added a NASA-OSAL API emulator over the RT kernel.
 - RT:  Added RT-STM32L476-DISCOVERY demo.
 - HAL: Added more STM32L4xx testhal demos.
 - HAL: Updated all STM32F476 mcuconf.h files.
@@ -95,6 +102,10 @@
 - RT:  Merged RT4.
 - NIL: Merged NIL2.
 - NIL: Added STM32F7 demo.
+- HAL: Fixed prescaler not initialized in STM32 ADCv1 (bug #725)
+       (backported to 16.1.5).
+- HAL: Fixed missing DAC section in STM32F072 mcuconf.h files (bug #724)
+       (backported to 16.1.5).
 - VAR: Fixed palSetMode glitching outputs (bug #723)(backported to 3.0.6
        and 16.1.4).
 - VAR: Fixed error in STM32 PWM driver regarding channels 4 and 5 (bug #722)

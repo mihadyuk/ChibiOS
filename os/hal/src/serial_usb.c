@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -252,7 +252,7 @@ void sduStart(SerialUSBDriver *sdup, const SerialUSBConfig *config) {
 /**
  * @brief   Stops the driver.
  * @details Any thread waiting on the driver's queues will be awakened with
- *          the message @p Q_RESET.
+ *          the message @p MSG_RESET.
  *
  * @param[in] sdup      pointer to a @p SerialUSBDriver object
  *

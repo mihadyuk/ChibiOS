@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -261,14 +261,6 @@
  * @note    Requires @p CH_CFG_USE_SEMAPHORES.
  */
 #define CH_CFG_USE_MAILBOXES                TRUE
-
-/**
- * @brief   I/O Queues APIs.
- * @details If enabled then the I/O queues APIs are included in the kernel.
- *
- * @note    The default is @p TRUE.
- */
-#define CH_CFG_USE_QUEUES                   TRUE
 
 /**
  * @brief   Core Memory Manager APIs.

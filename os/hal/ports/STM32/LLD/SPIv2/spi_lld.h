@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -193,15 +193,6 @@
  */
 #if !defined(STM32_SPI_SPI6_DMA_PRIORITY) || defined(__DOXYGEN__)
 #define STM32_SPI_SPI6_DMA_PRIORITY         1
-#endif
-
-/**
- * @brief   Enables the SPI BIDIMODE support.
- * @details If set to @p TRUE the support for BIDIMODE CR1 bit is included.
- * @note    The default is @p FALSE.
- */
-#if !defined(STM32_SPI_USE_BIDIMODE) || defined(__DOXYGEN__)
-#define STM32_SPI_USE_BIDIMODE              FALSE
 #endif
 
 /**

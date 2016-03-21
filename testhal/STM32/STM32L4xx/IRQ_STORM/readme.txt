@@ -11,11 +11,6 @@ The demo runs on an STMicroelectronics STM32L4-Nucleo board.
 The application demonstrates the use of the STM32L4xx GPT, PAL and Serial
 drivers in order to implement a system stress demo.
 
-** Board Setup **
-
-- Connect an RS232 transceiver to pins PA9(TX) and PA10(RX).
-- Connect a terminal emulator to the transceiver (38400-N-8-1).
-
 ** Build Procedure **
 
 The demo has been tested using the free Codesourcery GCC-based toolchain

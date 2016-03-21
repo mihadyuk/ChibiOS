@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -44,10 +44,6 @@
 #define STM_RESET            MSG_RESET
 /** @} */
 
-/* The ChibiOS/RT kernel provides the following definitions by itself, this
-   check is performed in order to avoid conflicts. */
-#if !defined(_CHIBIOS_RT_) || defined(__DOXYGEN__)
-
 /**
  * @brief   BaseSequentialStream specific methods.
  */
@@ -85,8 +81,6 @@ typedef struct {
   const struct BaseSequentialStreamVMT *vmt;
   _base_sequential_stream_data
 } BaseSequentialStream;
-
-#endif /* !defined(_CHIBIOS_RT_)*/
 
 /**
  * @name    Macro Functions (BaseSequentialStream)

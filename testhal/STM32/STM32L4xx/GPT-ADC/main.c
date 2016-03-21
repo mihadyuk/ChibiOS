@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -147,7 +147,7 @@ int main(void) {
 
   /*
    * Starts an ADC continuous conversion triggered with a period of
-   * 1/10000 second.
+   * 1/1000000 second.
    */
   adcStartConversion(&ADCD1, &adcgrpcfg1, samples1, ADC_GRP1_BUF_DEPTH);
   gptStartContinuous(&GPTD4, 100);

@@ -22,6 +22,7 @@
  * @{
  */
 
+#include <stdarg.h>
 #include <string.h>
 
 #include "ch.h"
@@ -131,6 +132,9 @@ typedef struct {
  */
 typedef struct {
   bool                  printf_enabled;
+  int (*printf)(const char *fmt, ...);
+  virtual_timer_t       vt;
+  OS_time_t             localtime;
   memory_pool_t         timers_pool;
   memory_pool_t         queues_pool;
   memory_pool_t         binary_semaphores_pool;
@@ -154,6 +158,22 @@ static osal_t osal;
 /*===========================================================================*/
 
 /**
+ * @brief   System time callback.
+ */
+static void systime_update(void *p) {
+  systime_t delay = (systime_t)p;
+
+  chSysLockFromISR();
+  osal.localtime.microsecs += 1000;
+  if (osal.localtime.microsecs >= 1000000) {
+    osal.localtime.microsecs = 0;
+    osal.localtime.seconds++;
+  }
+  chVTDoSetI(&osal.vt, delay, systime_update, p);
+  chSysUnlockFromISR();
+}
+
+/**
  * @brief   Virtual timers callback.
  */
 static void timer_handler(void *p) {
@@ -170,6 +190,56 @@ static void timer_handler(void *p) {
   }
 }
 
+/**
+ * @brief   Finds a queue by name.
+ */
+uint32 queue_find(const char *queue_name) {
+  osal_queue_t *oqp;
+
+  /* Searching the queue in the table.*/
+  for (oqp = &osal.queues[0]; oqp < &osal.queues[OS_MAX_QUEUES]; oqp++) {
+    /* Entering a reentrant critical zone.*/
+    syssts_t sts = chSysGetStatusAndLockX();
+
+    if (!oqp->is_free &&
+        (strncmp(oqp->name, queue_name, OS_MAX_API_NAME - 1) == 0)) {
+      /* Leaving the critical zone.*/
+      chSysRestoreStatusX(sts);
+      return (uint32)oqp;
+    }
+
+    /* Leaving the critical zone.*/
+    chSysRestoreStatusX(sts);
+  }
+
+  return 0;
+}
+
+/**
+ * @brief   Finds a timer by name.
+ */
+uint32 timer_find(const char *timer_name) {
+  osal_timer_t *otp;
+
+  /* Searching the queue in the table.*/
+  for (otp = &osal.timers[0]; otp < &osal.timers[OS_MAX_TIMERS]; otp++) {
+    /* Entering a reentrant critical zone.*/
+    syssts_t sts = chSysGetStatusAndLockX();
+
+    if (!otp->is_free &&
+        (strncmp(otp->name, timer_name, OS_MAX_API_NAME - 1) == 0)) {
+      /* Leaving the critical zone.*/
+      chSysRestoreStatusX(sts);
+      return (uint32)otp;
+    }
+
+    /* Leaving the critical zone.*/
+    chSysRestoreStatusX(sts);
+  }
+
+  return 0;
+}
+
 /*===========================================================================*/
 /* Module exported functions.                                                */
 /*===========================================================================*/
@@ -182,7 +252,7 @@ static void timer_handler(void *p) {
  *          of the OS Abstraction Layer. It must be called in the application
  *          startup code before calling any other OS routines.
  *
- * @return                      kAn error code.
+ * @return                      An error code.
  *
  * @api
  */
@@ -192,46 +262,53 @@ int32 OS_API_Init(void) {
 
   /* OS_printf() initially disabled.*/
   osal.printf_enabled = false;
+  osal.printf = NULL;
+
+  /* System time handling.*/
+  osal.localtime.microsecs = 0;
+  osal.localtime.seconds   = 0;
+  chVTObjectInit(&osal.vt);
+  chVTSet(&osal.vt, MS2ST(1), systime_update, (void *)MS2ST(1));
 
   /* Timers pool initialization.*/
   chPoolObjectInit(&osal.timers_pool,
                    sizeof (osal_timer_t),
                    NULL);
   chPoolLoadArray(&osal.timers_pool,
-                  &osal.timers,
-                  sizeof (osal_timer_t));
+                  &osal.timers[0],
+                  OS_MAX_TIMERS);
 
   /* Queues pool initialization.*/
   chPoolObjectInit(&osal.queues_pool,
                    sizeof (osal_queue_t),
                    NULL);
   chPoolLoadArray(&osal.queues_pool,
-                  &osal.queues,
-                  sizeof (osal_queue_t));
+                  &osal.queues[0],
+                  OS_MAX_QUEUES);
 
   /* Binary Semaphores pool initialization.*/
   chPoolObjectInit(&osal.binary_semaphores_pool,
                    sizeof (binary_semaphore_t),
                    NULL);
   chPoolLoadArray(&osal.binary_semaphores_pool,
-                  &osal.binary_semaphores,
-                  sizeof (binary_semaphore_t));
+                  &osal.binary_semaphores[0],
+                  OS_MAX_BIN_SEMAPHORES);
 
   /* Counter Semaphores pool initialization.*/
   chPoolObjectInit(&osal.count_semaphores_pool,
                    sizeof (semaphore_t),
                    NULL);
   chPoolLoadArray(&osal.count_semaphores_pool,
-                  &osal.count_semaphores,
-                  sizeof (semaphore_t));
+                  &osal.count_semaphores[0],
+                  OS_MAX_COUNT_SEMAPHORES);
 
   /* Mutexes pool initialization.*/
   chPoolObjectInit(&osal.mutexes_pool,
                    sizeof (mutex_t),
                    NULL);
   chPoolLoadArray(&osal.mutexes_pool,
-                  &osal.mutexes,
-                  sizeof (mutex_t));
+                  &osal.mutexes[0],
+                  OS_MAX_MUTEXES);
 
   return OS_SUCCESS;
 }
@@ -248,11 +325,12 @@ int32 OS_API_Init(void) {
  * @api
  */
 void OS_printf(const char *string, ...) {
+  va_list ap;
 
-  (void)string;
-
-  if (osal.printf_enabled) {
-
+  if (osal.printf_enabled && (osal.printf != NULL)) {
+    va_start(ap, string);
+    (void) osal.printf(string);
+    va_end(ap);
   }
 }
 
@@ -274,6 +352,20 @@ void OS_printf_disable(void) {
 void OS_printf_enable(void) {
 
   osal.printf_enabled = true;
+}
+
+/**
+ * @brief   Sets the system printf function.
+ * @note    By default the printf function is not defined.
+ * @note    This is a ChibiOS/RT extension.
+ *
+ * @param[in] printf    pointer to a @p printf() like function
+ *
+ * @api
+ */
+void OS_set_printf(int (*printf)(const char *fmt, ...)) {
+
+  osal.printf = printf;
 }
 
 /**
@@ -301,10 +393,11 @@ int32 OS_GetLocalTime(OS_time_t *time_struct) {
      return OS_INVALID_POINTER;
   }
 
-  time_struct->seconds = 0;
-  time_struct->microsecs = 0;
+  chSysLock();
+  *time_struct = osal.localtime;
+  chSysUnlock();
 
-  return OS_ERR_NOT_IMPLEMENTED;
+  return OS_SUCCESS;
 }
 
 /**
@@ -322,7 +415,11 @@ int32 OS_SetLocalTime(OS_time_t *time_struct) {
      return OS_INVALID_POINTER;
   }
 
-  return OS_ERR_NOT_IMPLEMENTED;
+  chSysLock();
+  osal.localtime = *time_struct;
+  chSysUnlock();
+
+  return OS_SUCCESS;
 }
 
 /**
@@ -356,38 +453,45 @@ int32 OS_TimerCreate(uint32 *timer_id, const char *timer_name,
   osal_timer_t *otp;
 
   /* NULL pointer checks.*/
-  if ((timer_id == NULL) || (timer_name == NULL) || (clock_accuracy == NULL)) {
+  if ((timer_id == NULL) || (timer_name == NULL) ||
+      (clock_accuracy == NULL)) {
     return OS_INVALID_POINTER;
   }
 
   /* NULL callback check.*/
   if (callback_ptr == NULL) {
+    *timer_id = 0;
     return OS_TIMER_ERR_INVALID_ARGS;
   }
 
   /* Checking timer name length.*/
   if (strlen(timer_name) >= OS_MAX_API_NAME) {
+    *timer_id = 0;
     return OS_ERR_NAME_TOO_LONG;
+  }
+
+  /* Checking if the name is already taken.*/
+  if (timer_find(timer_name) > 0) {
+    *timer_id = 0;
+    return OS_ERR_NAME_TAKEN;
   }
 
   /* Getting object.*/
   otp = chPoolAlloc(&osal.timers_pool);
   if (otp == NULL) {
+    *timer_id = 0;
     return OS_ERR_NO_FREE_IDS;
   }
 
-  chSysLock();
-
-  strncpy(otp->name, timer_name, OS_MAX_API_NAME);
+  strncpy(otp->name, timer_name, OS_MAX_API_NAME - 1);
   chVTObjectInit(&otp->vt);
   otp->start_time    = 0;
   otp->interval_time = 0;
   otp->callback_ptr  = callback_ptr;
   otp->is_free       = 0;   /* Note, last.*/
 
+  *timer_id = (uint32)otp;
   *clock_accuracy = (uint32)(1000000 / CH_CFG_ST_FREQUENCY);
-
-  chSysUnlock();
 
   return OS_SUCCESS;
 }
@@ -479,7 +583,6 @@ int32 OS_TimerSet(uint32 timer_id, uint32 start_time, uint32 interval_time) {
  * @api
  */
 int32 OS_TimerGetIdByName(uint32 *timer_id, const char *timer_name) {
-  osal_timer_t *otp;
 
   /* NULL pointer checks.*/
   if ((timer_id == NULL) || (timer_name == NULL)) {
@@ -491,22 +594,10 @@ int32 OS_TimerGetIdByName(uint32 *timer_id, const char *timer_name) {
     return OS_ERR_NAME_TOO_LONG;
   }
 
-  /* Searching the timer in the table.*/
-  for (otp = &osal.timers[0]; otp < &osal.timers[OS_MAX_QUEUES]; otp++) {
-    /* Entering a reentrant critical zone.*/
-    syssts_t sts = chSysGetStatusAndLockX();
-
-    if (!otp->is_free &&
-        (strncmp(otp->name, timer_name, OS_MAX_API_NAME - 1) == 0)) {
-      *timer_id = (uint32)otp;
-
-      /* Leaving the critical zone.*/
-      chSysRestoreStatusX(sts);
-      return OS_SUCCESS;
-    }
-
-    /* Leaving the critical zone.*/
-    chSysRestoreStatusX(sts);
+  /* Searching the queue.*/
+  *timer_id = timer_find(timer_name);
+  if (*timer_id > 0) {
+    return OS_SUCCESS;
   }
 
   return OS_ERR_NAME_NOT_FOUND;
@@ -588,18 +679,27 @@ int32 OS_QueueCreate(uint32 *queue_id, const char *queue_name,
 
   /* Checking queue name length.*/
   if (strlen(queue_name) >= OS_MAX_API_NAME) {
+    *queue_id = 0;
     return OS_ERR_NAME_TOO_LONG;
   }
 
+  /* Checking if the name is already taken.*/
+  if (queue_find(queue_name) > 0) {
+    *queue_id = 0;
+    return OS_ERR_NAME_TAKEN;
+  }
+
   /* Checks on queue limits. There is no dedicated error code.*/
-  if ((data_size < MIN_MESSAGE_SIZE) || (data_size < MAX_MESSAGE_SIZE) ||
-      (queue_depth < MIN_QUEUE_DEPTH) || (queue_depth < MAX_QUEUE_DEPTH)) {
+  if ((data_size < MIN_MESSAGE_SIZE) || (data_size > MAX_MESSAGE_SIZE) ||
+      (queue_depth < MIN_QUEUE_DEPTH) || (queue_depth > MAX_QUEUE_DEPTH)) {
+    *queue_id = 0;
     return OS_ERROR;
   }
 
   /* Getting object.*/
   oqp = chPoolAlloc(&osal.queues_pool);
   if (oqp == NULL) {
+    *queue_id = 0;
     return OS_ERR_NO_FREE_IDS;
   }
 
@@ -609,6 +709,7 @@ int32 OS_QueueCreate(uint32 *queue_id, const char *queue_name,
                                       msgsize * (size_t)queue_depth,
                                       PORT_NATURAL_ALIGN);
   if (oqp->mb_buffer == NULL) {
+    *queue_id = 0;
     return OS_ERROR;
   }
 
@@ -617,12 +718,13 @@ int32 OS_QueueCreate(uint32 *queue_id, const char *queue_name,
                                      sizeof (msg_t) * (size_t)queue_depth,
                                      PORT_NATURAL_ALIGN);
   if (oqp->q_buffer == NULL) {
+    *queue_id = 0;
     chHeapFree(oqp->mb_buffer);
     return OS_ERROR;
   }
 
   /* Initializing object static parts.*/
-  strncpy(oqp->name, queue_name, OS_MAX_API_NAME);
+  strncpy(oqp->name, queue_name, OS_MAX_API_NAME - 1);
   chMBObjectInit(&oqp->mb, oqp->q_buffer, (size_t)queue_depth);
   chSemObjectInit(&oqp->free_msgs, (cnt_t)queue_depth);
   chPoolObjectInit(&oqp->messages, msgsize, NULL);
@@ -630,6 +732,7 @@ int32 OS_QueueCreate(uint32 *queue_id, const char *queue_name,
   oqp->depth   = queue_depth;
   oqp->size    = data_size;
   oqp->is_free = 0;   /* Note, last.*/
+  *queue_id = (uint32)oqp;
 
   return OS_SUCCESS;
 }
@@ -820,7 +923,6 @@ int32 OS_QueuePut(uint32 queue_id, void *data, uint32 size, uint32 flags) {
  * @api
  */
 int32 OS_QueueGetIdByName(uint32 *queue_id, const char *queue_name) {
-  osal_queue_t *oqp;
 
   /* NULL pointer checks.*/
   if ((queue_id == NULL) || (queue_name == NULL)) {
@@ -832,22 +934,10 @@ int32 OS_QueueGetIdByName(uint32 *queue_id, const char *queue_name) {
     return OS_ERR_NAME_TOO_LONG;
   }
 
-  /* Searching the queue in the table.*/
-  for (oqp = &osal.queues[0]; oqp < &osal.queues[OS_MAX_QUEUES]; oqp++) {
-    /* Entering a reentrant critical zone.*/
-    syssts_t sts = chSysGetStatusAndLockX();
-
-    if (!oqp->is_free &&
-        (strncmp(oqp->name, queue_name, OS_MAX_API_NAME - 1) == 0)) {
-      *queue_id = (uint32)oqp;
-
-      /* Leaving the critical zone.*/
-      chSysRestoreStatusX(sts);
-      return OS_SUCCESS;
-    }
-
-    /* Leaving the critical zone.*/
-    chSysRestoreStatusX(sts);
+  /* Searching the queue.*/
+  *queue_id = queue_find(queue_name);
+  if (*queue_id > 0) {
+    return OS_SUCCESS;
   }
 
   return OS_ERR_NAME_NOT_FOUND;
@@ -890,7 +980,7 @@ int32 OS_QueueGetInfo (uint32 queue_id, OS_queue_prop_t *queue_prop) {
   }
 
   strncpy(queue_prop->name, oqp->name, OS_MAX_API_NAME - 1);
-  queue_prop->creator       = (uint32)0;
+  queue_prop->creator = (uint32)0;
 
   /* Leaving the critical zone.*/
   chSysRestoreStatusX(sts);
@@ -941,7 +1031,7 @@ int32 OS_BinSemCreate(uint32 *sem_id, const char *sem_name,
   }
 
   /* Semaphore is initialized.*/
-  chBSemObjectInit(bsp, sem_initial_value == 0 ? false : true);
+  chBSemObjectInit(bsp, sem_initial_value == 0 ? true : false);
 
   *sem_id = (uint32)bsp;
 
@@ -1012,7 +1102,10 @@ int32 OS_BinSemFlush(uint32 sem_id) {
     return OS_SEM_FAILURE;
   }
 
-  chBSemResetI(bsp, true);
+  /* If the semaphore state is "not taken" then it is not touched.*/
+  if (bsp->sem.cnt < 0) {
+    chBSemResetI(bsp, true);
+  }
 
   /* Leaving the critical zone.*/
   chSysRestoreStatusX(sts);
@@ -1778,9 +1871,25 @@ int32 OS_TaskInstallDeleteHandler(void *function_pointer) {
 }
 
 /**
+ * @brief   Check for task termination request.
+ * @note    This is a ChibiOS/RT extension, direct task delete is not
+ *          allowed in RT.
+ *
+ * @return                      The termination request flag.
+ * @retval false                if termination has not been requested.
+ * @retval true                 if termination has been requested.
+ *
+ * @api
+ */
+boolean OS_TaskDeleteCheck(void) {
+
+  return (boolean)chThdShouldTerminateX();
+}
+
+/**
  * @brief   Task delete.
  * @note    Limitation, it does not actually kill the thread, it just sets a
- *          flag in the thread that has then to terminate volountarly. The
+ *          flag in the thread that has then to terminate voluntarily. The
  *          flag can be checked using @p chThdShouldTerminateX().
  *
  * @param[in] task_id           the task id
@@ -1822,6 +1931,28 @@ int32 OS_TaskDelete(uint32 task_id) {
 void OS_TaskExit(void) {
 
   chThdExit(MSG_OK);
+}
+
+/**
+ * @brief   Wait for task termination.
+ * @note    This is a ChibiOS/RT extension, added for improved testability.
+ *
+ * @param[in] task_id           the task id
+ * @return                      An error code.
+ *
+ * @api
+ */
+int32 OS_TaskWait(uint32 task_id) {
+  thread_t *tp = (thread_t *)task_id;
+
+  /* Check for thread validity, getting a reference.*/
+  if (chRegFindThreadByPointer(tp) == NULL) {
+    return OS_ERR_INVALID_ID;
+  }
+
+  (void) chThdWait(tp);
+
+  return OS_SUCCESS;
 }
 
 /**
@@ -2016,6 +2147,139 @@ int32 OS_TaskGetInfo(uint32 task_id, OS_task_prop_t *task_prop) {
   chThdRelease(tp);
 
   return OS_SUCCESS;
+}
+
+/*-- System Interrupt API ---------------------------------------------------*/
+
+/* In ChibiOS interrupts are statically linked, the vectors table is in
+   flash.*/
+int32 OS_IntAttachHandler (uint32 InterruptNumber,
+                           osal_task_entry InterruptHandler,
+                           int32 parameter) {
+  (void)InterruptNumber;
+  (void)parameter;
+
+  /* NULL pointer checks.*/
+  if (InterruptHandler == NULL) {
+    return OS_INVALID_POINTER;
+  }
+
+  return OS_ERR_NOT_IMPLEMENTED;
+}
+
+int32 OS_IntLock(void) {
+
+  return (int32)chSysGetStatusAndLockX();
+}
+
+int32 OS_IntUnlock(int32 IntLevel) {
+
+  chSysRestoreStatusX((syssts_t) IntLevel);
+
+  return OS_SUCCESS;
+}
+
+int32 OS_IntEnable(int32 Level) {
+
+  NVIC_EnableIRQ((IRQn_Type)Level);
+
+  return OS_SUCCESS;
+}
+
+int32 OS_IntDisable(int32 Level) {
+
+  NVIC_DisableIRQ((IRQn_Type)Level);
+
+  return OS_SUCCESS;
+}
+
+int32 OS_IntAck(int32 InterruptNumber) {
+
+  NVIC_ClearPendingIRQ((IRQn_Type)InterruptNumber);
+
+  return OS_SUCCESS;
+}
+
+/*-- System Exception API ---------------------------------------------------*/
+
+/* In ChibiOS exceptions are statically linked, the vectors table is in
+   flash.*/
+int32 OS_ExcAttachHandler(uint32 ExceptionNumber,
+                          void (*ExceptionHandler)(uint32, uint32 *,uint32),
+                          int32 parameter) {
+
+  (void)ExceptionNumber;
+  (void)parameter;
+
+  /* NULL pointer checks.*/
+  if (ExceptionHandler == NULL) {
+    return OS_INVALID_POINTER;
+  }
+
+  return OS_ERR_NOT_IMPLEMENTED;
+}
+
+/* No exceptions masking.*/
+int32 OS_ExcEnable(int32 ExceptionNumber) {
+
+  (void)ExceptionNumber;
+
+  return OS_ERR_NOT_IMPLEMENTED;
+}
+
+/* No exceptions masking.*/
+int32 OS_ExcDisable(int32 ExceptionNumber) {
+
+  (void)ExceptionNumber;
+
+  return OS_ERR_NOT_IMPLEMENTED;
+}
+
+/*-- Floating Point Unit API ------------------------------------------------*/
+
+/* In ChibiOS exceptions are statically linked, the vectors table is in
+   flash.*/
+int32 OS_FPUExcAttachHandler(uint32 ExceptionNumber,
+                             void * ExceptionHandler ,
+                             int32 parameter) {
+
+  (void)ExceptionNumber;
+  (void)parameter;
+
+  /* NULL pointer checks.*/
+  if (ExceptionHandler == NULL) {
+    return OS_INVALID_POINTER;
+  }
+
+  return OS_ERR_NOT_IMPLEMENTED;
+}
+
+int32 OS_FPUExcEnable(int32 ExceptionNumber) {
+
+  (void)ExceptionNumber;
+
+  return OS_ERR_NOT_IMPLEMENTED;
+}
+
+int32 OS_FPUExcDisable(int32 ExceptionNumber) {
+
+  (void)ExceptionNumber;
+
+  return OS_ERR_NOT_IMPLEMENTED;
+}
+
+int32 OS_FPUExcSetMask(uint32 mask) {
+
+  (void)mask;
+
+  return OS_ERR_NOT_IMPLEMENTED;
+}
+
+int32 OS_FPUExcGetMask(uint32 *mask) {
+
+  (void)mask;
+
+  return OS_ERR_NOT_IMPLEMENTED;
 }
 
 /** @} */

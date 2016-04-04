@@ -79,6 +79,8 @@
 *****************************************************************************
 
 *** Next ***
+- RT:  Fixed bug in chSchPreemption() function (bug #728)(backported to 2.6.10,
+       3.0.6 and 16.1.5).
 - HAL: All high level file names have been renamed and prefixed with "hal_"
        in order to minimize the risk of name conflicts when integrating
        external libraries. 
@@ -87,7 +89,7 @@
 - RT:  Removed I/O Queues and Streams interface, now those exists (much
        improved) inside the HAL.
 - HAL: Improvements to the I/O queues now timeouts are absolute for
-       iqReadTimeout() and oqWriteTimeout functions.
+       iqReadTimeout() and oqWriteTimeout() functions.
 - RT:  Added a NASA-OSAL API emulator over the RT kernel.
 - RT:  Added RT-STM32L476-DISCOVERY demo.
 - HAL: Added more STM32L4xx testhal demos.

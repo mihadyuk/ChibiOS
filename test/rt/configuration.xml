@@ -35,6 +35,11 @@
             <value><![CDATA[#define TEST_SUITE_NAME                     "ChibiOS/RT Test Suite"
 
 /*
+ * Allowed delay in timeout checks.
+ */
+#define ALLOWED_DELAY MS2ST(2)
+
+/*
  * Maximum number of test threads.
  */
 #define MAX_THREADS             5
@@ -71,8 +76,12 @@ union test_buffers {
   uint8_t buffer[WA_SIZE * 5];
 };
 
+extern thread_t *threads[MAX_THREADS];
+extern void * ROMCONST wa[5];
+
 void test_terminate_threads(void);
-void test_wait_threads(void);]]></value>
+void test_wait_threads(void);
+systime_t test_wait_tick(void);]]></value>
           </global_definitions>
           <global_code>
             <value><![CDATA[/*
@@ -114,6 +123,12 @@ void test_wait_threads(void) {
       chThdWait(threads[i]);
       threads[i] = NULL;
     }
+}
+
+systime_t test_wait_tick(void) {
+
+  chThdSleep(1);
+  return chVTGetSystemTime();
 }]]></value>
           </global_code>
         </global_data_and_code>
@@ -132,9 +147,7 @@ void test_wait_threads(void) {
               <value />
             </condition>
             <shared_code>
-              <value><![CDATA[#include "ch.h"
-
-/* Timer callback for testing system functions in ISR context.*/
+              <value><![CDATA[/* Timer callback for testing system functions in ISR context.*/
 static void vtcb(void *p) {
   syssts_t sts;
 
@@ -409,15 +422,13 @@ while (time == chVTGetSystemTimeX()) {
               <value>Threads Functionality.</value>
             </brief>
             <description>
-              <value>This sequence tests the ChibiOS/NIL functionalities related to threading.</value>
+              <value>This sequence tests the ChibiOS/RT functionalities related to threading.</value>
             </description>
             <condition>
               <value />
             </condition>
             <shared_code>
-              <value><![CDATA[#include "ch.h"
-
-static THD_FUNCTION(thread, p) {
+              <value><![CDATA[static THD_FUNCTION(thread, p) {
 
   test_emit_token(*(char *)p);
 }]]></value>
@@ -558,7 +569,7 @@ threads[2] = chThdCreateStatic(wa[2], WA_SIZE, chThdGetPriorityX()-3, thread, "C
 threads[3] = chThdCreateStatic(wa[3], WA_SIZE, chThdGetPriorityX()-2, thread, "B");
 threads[4] = chThdCreateStatic(wa[4], WA_SIZE, chThdGetPriorityX()-1, thread, "A");
 test_wait_threads();
-test_assert_sequence("ABCDE");]]></value>
+test_assert_sequence("ABCDE", "invalid sequence");]]></value>
                     </code>
                   </step>
                   <step>
@@ -575,7 +586,7 @@ threads[2] = chThdCreateStatic(wa[2], WA_SIZE, chThdGetPriorityX()-3, thread, "C
 threads[1] = chThdCreateStatic(wa[1], WA_SIZE, chThdGetPriorityX()-4, thread, "D");
 threads[0] = chThdCreateStatic(wa[0], WA_SIZE, chThdGetPriorityX()-5, thread, "E");
 test_wait_threads();
-test_assert_sequence("ABCDE");]]></value>
+test_assert_sequence("ABCDE", "invalid sequence");]]></value>
                     </code>
                   </step>
                   <step>
@@ -592,7 +603,137 @@ threads[4] = chThdCreateStatic(wa[4], WA_SIZE, chThdGetPriorityX()-1, thread, "A
 threads[3] = chThdCreateStatic(wa[3], WA_SIZE, chThdGetPriorityX()-2, thread, "B");
 threads[2] = chThdCreateStatic(wa[2], WA_SIZE, chThdGetPriorityX()-3, thread, "C");
 test_wait_threads();
-test_assert_sequence("ABCDE");]]></value>
+test_assert_sequence("ABCDE", "invalid sequence");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Priority change test.</value>
+                </brief>
+                <description>
+                  <value>A series of priority changes are performed on the current thread in order to verify that the priority change happens as expected.</value>
+                </description>
+                <condition>
+                  <value />
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value />
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[tprio_t prio, p1;]]></value>
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Thread priority is increased by one then a check is performed.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[prio = chThdGetPriorityX();
+p1 = chThdSetPriority(prio + 1);
+test_assert(p1 == prio, "unexpected returned priority level");
+test_assert(chThdGetPriorityX() == prio + 1, "unexpected priority level");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Thread priority is returned to the previous value then a check is performed.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[p1 = chThdSetPriority(p1);
+test_assert(p1 == prio + 1, "unexpected returned priority level");
+test_assert(chThdGetPriorityX() == prio, "unexpected priority level");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Priority change test with Priority Inheritance.</value>
+                </brief>
+                <description>
+                  <value>A series of priority changes are performed on the current thread in order to verify that the priority change happens as expected.</value>
+                </description>
+                <condition>
+                  <value>CH_CFG_USE_MUTEXES</value>
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value />
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[tprio_t prio, p1;]]></value>
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Simulating a priority boost situation (prio &gt; realprio).</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[prio = chThdGetPriorityX();
+chThdGetSelfX()->prio += 2;
+test_assert(chThdGetPriorityX() == prio + 2, "unexpected priority level");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Raising thread priority above original priority but below the boosted level.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[p1 = chThdSetPriority(prio + 1);
+test_assert(p1 == prio, "unexpected returned priority level");
+test_assert(chThdGetSelfX()->prio == prio + 2, "unexpected priority level");
+test_assert(chThdGetSelfX()->realprio == prio + 1, "unexpected returned real priority level");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Raising thread priority above the boosted level.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[p1 = chThdSetPriority(prio + 3);
+test_assert(p1 == prio + 1, "unexpected returned priority level");
+test_assert(chThdGetSelfX()->prio == prio + 3, "unexpected priority level");
+test_assert(chThdGetSelfX()->realprio == prio + 3, "unexpected real priority level");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Restoring original conditions.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chSysLock();
+chThdGetSelfX()->prio = prio;
+chThdGetSelfX()->realprio = prio;
+chSysUnlock();]]></value>
                     </code>
                   </step>
                 </steps>
@@ -604,10 +745,99 @@ test_assert_sequence("ABCDE");]]></value>
               <value>Internal Tests</value>
             </type>
             <brief>
-              <value>Semaphores.</value>
+              <value>Suspend/Resume.</value>
             </brief>
             <description>
-              <value>This sequence tests the ChibiOS/NIL functionalities related to counter semaphores.</value>
+              <value>This sequence tests the ChibiOS/RT functionalities related to threads suspend/resume.</value>
+            </description>
+            <condition>
+              <value />
+            </condition>
+            <shared_code>
+              <value><![CDATA[static thread_reference_t tr1;
+
+static THD_FUNCTION(thread1, p) {
+
+  chSysLock();
+  chThdResumeI(&tr1, MSG_OK);
+  chSchRescheduleS();
+  chSysUnlock();
+  test_emit_token(*(char *)p);
+}]]></value>
+            </shared_code>
+            <cases>
+              <case>
+                <brief>
+                  <value>Suspend and Resume functionality.</value>
+                </brief>
+                <description>
+                  <value>The functionality of chThdSuspendTimeoutS() and chThdResumeI() is tested.</value>
+                </description>
+                <condition>
+                  <value />
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[tr1 = NULL;]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[systime_t time;
+msg_t msg;]]></value>
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>The function chThdSuspendTimeoutS() is invoked, the thread is remotely resumed with message @p MSG_OK. On return the message and the state of the reference are tested.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[threads[0] = chThdCreateStatic(wa[0], WA_SIZE, chThdGetPriorityX()-1, thread1, "A");
+chSysLock();
+msg = chThdSuspendTimeoutS(&tr1, TIME_INFINITE);
+chSysUnlock();
+test_assert(NULL == tr1, "not NULL");
+test_assert(MSG_OK == msg,"wrong returned message");
+test_wait_threads();]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>The function chThdSuspendTimeoutS() is invoked, the thread is not resumed so a timeout must occur. On return the message and the state of the reference are tested.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chSysLock();
+time = chVTGetSystemTimeX();
+msg = chThdSuspendTimeoutS(&tr1, MS2ST(1000));
+chSysUnlock();
+test_assert_time_window(time + MS2ST(1000),
+                        time + MS2ST(1000) + 1,
+                        "out of time window");
+test_assert(NULL == tr1, "not NULL");
+test_assert(MSG_TIMEOUT == msg, "wrong returned message");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+            </cases>
+          </sequence>
+          <sequence>
+            <type index="0">
+              <value>Internal Tests</value>
+            </type>
+            <brief>
+              <value>Counter and Binary Semaphores.</value>
+            </brief>
+            <description>
+              <value>This sequence tests the ChibiOS/RT functionalities related to counter semaphores.</value>
             </description>
             <condition>
               <value>CH_CFG_USE_SEMAPHORES</value>
@@ -615,7 +845,35 @@ test_assert_sequence("ABCDE");]]></value>
             <shared_code>
               <value><![CDATA[#include "ch.h"
 
-static semaphore_t sem1;]]></value>
+static semaphore_t sem1;
+
+static THD_FUNCTION(thread1, p) {
+
+  chSemWait(&sem1);
+  test_emit_token(*(char *)p);
+}
+
+static THD_FUNCTION(thread2, p) {
+
+  (void)p;
+  chThdSleepMilliseconds(50);
+  chSysLock();
+  chSemSignalI(&sem1); /* For coverage reasons */
+  chSchRescheduleS();
+  chSysUnlock();
+}
+
+static THD_FUNCTION(thread3, p) {
+
+  (void)p;
+  chSemWait(&sem1);
+  chSemSignal(&sem1);
+}
+
+static THD_FUNCTION(thread4, p) {
+
+  chBSemSignal((binary_semaphore_t *)p);
+}]]></value>
             </shared_code>
             <cases>
               <case>
@@ -683,64 +941,10 @@ test_assert_lock(chSemGetCounterI(&sem1) == 2, "wrong counter value");]]></value
               </case>
               <case>
                 <brief>
-                  <value>Semaphore primitives, with state change.</value>
+                  <value>Semaphore enqueuing test.</value>
                 </brief>
                 <description>
-                  <value>Wait, Signal and Reset primitives are tested. The testing thread triggers a state change.</value>
-                </description>
-                <condition>
-                  <value />
-                </condition>
-                <various_code>
-                  <setup_code>
-                    <value><![CDATA[chSemObjectInit(&gsem1, 0);]]></value>
-                  </setup_code>
-                  <teardown_code>
-                    <value><![CDATA[chSemReset(&gsem1, 0);]]></value>
-                  </teardown_code>
-                  <local_variables>
-                    <value />
-                  </local_variables>
-                </various_code>
-                <steps>
-                  <step>
-                    <description>
-                      <value>The function chSemWait() is invoked, after return the counter and the returned message are tested. The semaphore is signaled by another thread.</value>
-                    </description>
-                    <tags>
-                      <value />
-                    </tags>
-                    <code>
-                      <value><![CDATA[msg_t msg;
-
-msg = chSemWait(&gsem1);
-test_assert_lock(chSemGetCounterI(&gsem1) == 0, "wrong counter value");
-test_assert(MSG_OK == msg, "wrong returned message");]]></value>
-                    </code>
-                  </step>
-                  <step>
-                    <description>
-                      <value>The function chSemWait() is invoked, after return the counter and the returned message are tested. The semaphore is reset by another thread.</value>
-                    </description>
-                    <tags>
-                      <value />
-                    </tags>
-                    <code>
-                      <value><![CDATA[msg_t msg;
-
-msg = chSemWait(&gsem2);
-test_assert_lock(chSemGetCounterI(&gsem2) == 0,"wrong counter value");
-test_assert(MSG_RESET == msg, "wrong returned message");]]></value>
-                    </code>
-                  </step>
-                </steps>
-              </case>
-              <case>
-                <brief>
-                  <value>Semaphores timeout.</value>
-                </brief>
-                <description>
-                  <value>Timeout on semaphores is tested.</value>
+                  <value>Five threads with randomized priorities are enqueued to a semaphore then awakened one at time. The test expects that the threads reach their goal in FIFO order or priority order depending on the @p CH_CFG_USE_SEMAPHORES_PRIORITY configuration setting.</value>
                 </description>
                 <condition>
                   <value />
@@ -750,46 +954,338 @@ test_assert(MSG_RESET == msg, "wrong returned message");]]></value>
                     <value><![CDATA[chSemObjectInit(&sem1, 0);]]></value>
                   </setup_code>
                   <teardown_code>
-                    <value><![CDATA[chSemReset(&sem1, 0);]]></value>
+                    <value />
                   </teardown_code>
                   <local_variables>
-                    <value><![CDATA[systime_t time;
+                    <value />
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Five threads are created with mixed priority levels (not increasing nor decreasing). Threads enqueue on a semaphore initialized to zero.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[threads[0] = chThdCreateStatic(wa[0], WA_SIZE, chThdGetPriorityX()+5, thread1, "A");
+threads[1] = chThdCreateStatic(wa[1], WA_SIZE, chThdGetPriorityX()+1, thread1, "B");
+threads[2] = chThdCreateStatic(wa[2], WA_SIZE, chThdGetPriorityX()+3, thread1, "C");
+threads[3] = chThdCreateStatic(wa[3], WA_SIZE, chThdGetPriorityX()+4, thread1, "D");
+threads[4] = chThdCreateStatic(wa[4], WA_SIZE, chThdGetPriorityX()+2, thread1, "E");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>The semaphore is signaled 5 times. The thread activation sequence is tested.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chSemSignal(&sem1);
+chSemSignal(&sem1);
+chSemSignal(&sem1);
+chSemSignal(&sem1);
+chSemSignal(&sem1);
+test_wait_threads();
+#if CH_CFG_USE_SEMAPHORES_PRIORITY
+  test_assert_sequence("ADCEB", "invalid sequence");
+#else
+  test_assert_sequence("ABCDE", "invalid sequence");
+#endif]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Semaphore timeout test.</value>
+                </brief>
+                <description>
+                  <value>The three possible semaphore waiting modes (do not wait, wait with timeout, wait without timeout) are explored. The test expects that the semaphore wait function returns the correct value in each of the above scenario and that the semaphore structure status is correct after each operation.</value>
+                </description>
+                <condition>
+                  <value />
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chSemObjectInit(&sem1, 0);]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[unsigned i;
+systime_t target_time;
 msg_t msg;]]></value>
                   </local_variables>
                 </various_code>
                 <steps>
                   <step>
                     <description>
-                      <value>The function chSemWaitTimeout() is invoked a first time, after return the system time, the counter and the returned message are tested.</value>
+                      <value>Testing special case TIME_IMMEDIATE.</value>
                     </description>
                     <tags>
                       <value />
                     </tags>
                     <code>
-                      <value><![CDATA[time = chVTGetSystemTimeX();
-msg = chSemWaitTimeout(&sem1, MS2ST(1000));
-test_assert_time_window(time + MS2ST(1000),
-                        time + MS2ST(1000) + 1,
-                        "out of time window");
-test_assert_lock(chSemGetCounterI(&sem1) == 0, "wrong counter value");
-test_assert(MSG_TIMEOUT == msg, "wrong timeout message");]]></value>
+                      <value><![CDATA[msg = chSemWaitTimeout(&sem1, TIME_IMMEDIATE);
+test_assert(msg == MSG_TIMEOUT, "wrong wake-up message");
+test_assert(queue_isempty(&sem1.queue), "queue not empty");
+test_assert(sem1.cnt == 0, "counter not zero");]]></value>
                     </code>
                   </step>
                   <step>
                     <description>
-                      <value>The function chSemWaitTimeout() is invoked again, after return the system time, the counter and the returned message are tested.</value>
+                      <value>Testing non-timeout condition.</value>
                     </description>
                     <tags>
                       <value />
                     </tags>
                     <code>
-                      <value><![CDATA[time = chVTGetSystemTimeX();
-msg = chSemWaitTimeout(&sem1, MS2ST(1000));
-test_assert_time_window(time + MS2ST(1000),
-                        time + MS2ST(1000) + 1,
-                        "out of time window");
-test_assert_lock(chSemGetCounterI(&sem1) == 0, "wrong counter value");
-test_assert(MSG_TIMEOUT == msg, "wrong timeout message");]]></value>
+                      <value><![CDATA[threads[0] = chThdCreateStatic(wa[0], WA_SIZE, chThdGetPriorityX() - 1,
+                               thread2, 0);
+msg = chSemWaitTimeout(&sem1, MS2ST(500));
+test_wait_threads();
+test_assert(msg == MSG_OK, "wrong wake-up message");
+test_assert(queue_isempty(&sem1.queue), "queue not empty");
+test_assert(sem1.cnt == 0, "counter not zero");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Testing timeout condition.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[target_time = test_wait_tick() + MS2ST(5 * 50);
+for (i = 0; i < 5; i++) {
+  test_emit_token('A' + i);
+  msg = chSemWaitTimeout(&sem1, MS2ST(50));
+  test_assert(msg == MSG_TIMEOUT, "wrong wake-up message");
+  test_assert(queue_isempty(&sem1.queue), "queue not empty");
+  test_assert(sem1.cnt == 0, "counter not zero");
+}
+test_assert_sequence("ABCDE", "invalid sequence");
+test_assert_time_window(target_time, target_time + ALLOWED_DELAY,
+                        "out of time window");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Testing chSemAddCounterI() functionality.</value>
+                </brief>
+                <description>
+                  <value>The functon is tested by waking up a thread then the semaphore counter value is tested.</value>
+                </description>
+                <condition>
+                  <value />
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chSemObjectInit(&sem1, 0);]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value />
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>A thread is created, it goes to wait on the semaphore.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[threads[0] = chThdCreateStatic(wa[0], WA_SIZE, chThdGetPriorityX()+1, thread1, "A");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>The semaphore counter is increased by two, it is then tested to be one, the thread must have completed.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chSysLock();
+chSemAddCounterI(&sem1, 2);
+chSchRescheduleS();
+chSysUnlock();
+test_wait_threads();
+test_assert_lock(chSemGetCounterI(&sem1) == 1, "invalid counter");
+test_assert_sequence("A", "invalid sequence");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Testing chSemWaitSignal() functionality.</value>
+                </brief>
+                <description>
+                  <value>This test case explicitly addresses the @p chSemWaitSignal() function. A thread is created that performs a wait and a signal operations. The tester thread is awakened from an atomic wait/signal operation. The test expects that the semaphore wait function returns the correct value in each of the above scenario and that the semaphore structure status is correct after each operation.</value>
+                </description>
+                <condition>
+                  <value />
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chSemObjectInit(&sem1, 0);]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value><![CDATA[test_wait_threads();]]></value>
+                  </teardown_code>
+                  <local_variables>
+                    <value />
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>An higher priority thread is created that performs non-atomical wait and signal operations on a semaphore.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[threads[0] = chThdCreateStatic(wa[0], WA_SIZE, chThdGetPriorityX()+1, thread3, 0);]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>The function chSemSignalWait() is invoked by specifying the same semaphore for the wait and signal phases. The counter value must be one on exit.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chSemSignalWait(&sem1, &sem1);
+test_assert(queue_isempty(&sem1.queue), "queue not empty");
+test_assert(sem1.cnt == 0, "counter not zero");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>The function chSemSignalWait() is invoked again by specifying the same semaphore for the wait and signal phases. The counter value must be one on exit.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chSemSignalWait(&sem1, &sem1);
+test_assert(queue_isempty(&sem1.queue), "queue not empty");
+test_assert(sem1.cnt == 0, "counter not zero");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Testing Binary Semaphores special case.</value>
+                </brief>
+                <description>
+                  <value>This test case tests the binary semaphores functionality. The test both checks the binary semaphore status and the expected status of the underlying counting semaphore.</value>
+                </description>
+                <condition>
+                  <value />
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value />
+                  </setup_code>
+                  <teardown_code>
+                    <value><![CDATA[test_wait_threads();]]></value>
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[binary_semaphore_t bsem;
+msg_t msg;]]></value>
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Creating a binary semaphore in "taken" state, the state is checked.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chBSemObjectInit(&bsem, true);
+test_assert_lock(chBSemGetStateI(&bsem) == true, "not taken");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Resetting the binary semaphore in "taken" state, the state must not change.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chBSemReset(&bsem, true);
+test_assert_lock(chBSemGetStateI(&bsem) == true, "not taken");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Starting a signaler thread at a lower priority.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[threads[0] = chThdCreateStatic(wa[0], WA_SIZE,
+                               chThdGetPriorityX()-1, thread4, &bsem);]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Waiting for the binary semaphore to be signaled, the semaphore is expected to be taken.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[msg = chBSemWait(&bsem);
+test_assert_lock(chBSemGetStateI(&bsem) == true, "not taken");
+test_assert(msg == MSG_OK, "unexpected message");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Signaling the binary semaphore, checking the binary semaphore state to be "not taken" and the underlying counter semaphore counter to be one.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chBSemSignal(&bsem);
+test_assert_lock(chBSemGetStateI(&bsem) ==false, "still taken");
+test_assert_lock(chSemGetCounterI(&bsem.sem) == 1, "unexpected counter");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Signaling the binary semaphore again, the internal state must not change from "not taken".</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chBSemSignal(&bsem);
+test_assert_lock(chBSemGetStateI(&bsem) == false, "taken");
+test_assert_lock(chSemGetCounterI(&bsem.sem) == 1, "unexpected counter");]]></value>
                     </code>
                   </step>
                 </steps>
@@ -801,86 +1297,1035 @@ test_assert(MSG_TIMEOUT == msg, "wrong timeout message");]]></value>
               <value>Internal Tests</value>
             </type>
             <brief>
-              <value>Suspend/Resume and Event Flags.</value>
+              <value>Mutexes, Condition Variables and Priority Inheritance.</value>
             </brief>
             <description>
-              <value>This sequence tests the ChibiOS/NIL functionalities related to threads suspend/resume and event flags.</value>
+              <value>This sequence tests the ChibiOS/RT functionalities related to mutexes, condition variables and priority inheritance algorithm.</value>
             </description>
             <condition>
-              <value />
+              <value>CH_CFG_USE_MUTEXES</value>
             </condition>
             <shared_code>
-              <value><![CDATA[static thread_reference_t tr1;]]></value>
+              <value><![CDATA[static MUTEX_DECL(m1);
+static MUTEX_DECL(m2);
+#if CH_CFG_USE_CONDVARS || defined(__DOXYGEN__)
+static CONDVAR_DECL(c1);
+#endif
+
+#if CH_DBG_THREADS_PROFILING || defined(__DOXYGEN__)
+/**
+ * @brief   CPU pulse.
+ * @note    The current implementation is not totally reliable.
+ *
+ * @param[in] duration      CPU pulse duration in milliseconds
+ */
+void test_cpu_pulse(unsigned duration) {
+  systime_t start, end, now;
+
+  start = chThdGetTicksX(chThdGetSelfX());
+  end = start + MS2ST(duration);
+  do {
+    now = chThdGetTicksX(chThdGetSelfX());
+#if defined(SIMULATOR)
+    _sim_check_for_interrupts();
+#endif
+  }
+  while (chVTIsTimeWithinX(now, start, end));
+}
+#endif /* CH_DBG_THREADS_PROFILING */
+
+static THD_FUNCTION(thread1, p) {
+
+  chMtxLock(&m1);
+  test_emit_token(*(char *)p);
+  chMtxUnlock(&m1);
+}
+
+#if CH_DBG_THREADS_PROFILING || defined(__DOXYGEN__)
+/* Low priority thread */
+static THD_FUNCTION(thread2L, p) {
+
+  (void)p;
+  chMtxLock(&m1);
+  test_cpu_pulse(40);
+  chMtxUnlock(&m1);
+  test_cpu_pulse(10);
+  test_emit_token('C');
+}
+
+/* Medium priority thread */
+static THD_FUNCTION(thread2M, p) {
+
+  (void)p;
+  chThdSleepMilliseconds(20);
+  test_cpu_pulse(40);
+  test_emit_token('B');
+}
+
+/* High priority thread */
+static THD_FUNCTION(thread2H, p) {
+
+  (void)p;
+  chThdSleepMilliseconds(40);
+  chMtxLock(&m1);
+  test_cpu_pulse(10);
+  chMtxUnlock(&m1);
+  test_emit_token('A');
+}
+
+/* Lowest priority thread */
+static THD_FUNCTION(thread3LL, p) {
+
+  (void)p;
+  chMtxLock(&m1);
+  test_cpu_pulse(30);
+  chMtxUnlock(&m1);
+  test_emit_token('E');
+}
+
+/* Low priority thread */
+static THD_FUNCTION(thread3L, p) {
+
+  (void)p;
+  chThdSleepMilliseconds(10);
+  chMtxLock(&m2);
+  test_cpu_pulse(20);
+  chMtxLock(&m1);
+  test_cpu_pulse(10);
+  chMtxUnlock(&m1);
+  test_cpu_pulse(10);
+  chMtxUnlock(&m2);
+  test_emit_token('D');
+}
+
+/* Medium priority thread */
+static THD_FUNCTION(thread3M, p) {
+
+  (void)p;
+  chThdSleepMilliseconds(20);
+  chMtxLock(&m2);
+  test_cpu_pulse(10);
+  chMtxUnlock(&m2);
+  test_emit_token('C');
+}
+
+/* High priority thread */
+static THD_FUNCTION(thread3H, p) {
+
+  (void)p;
+  chThdSleepMilliseconds(40);
+  test_cpu_pulse(20);
+  test_emit_token('B');
+}
+
+/* Highest priority thread */
+static THD_FUNCTION(thread3HH, p) {
+
+  (void)p;
+  chThdSleepMilliseconds(50);
+  chMtxLock(&m2);
+  test_cpu_pulse(10);
+  chMtxUnlock(&m2);
+  test_emit_token('A');
+}
+#endif /* CH_DBG_THREADS_PROFILING */
+
+static THD_FUNCTION(thread4A, p) {
+
+  (void)p;
+  chThdSleepMilliseconds(50);
+  chMtxLock(&m1);
+  chMtxUnlock(&m1);
+}
+
+static THD_FUNCTION(thread4B, p) {
+
+  (void)p;
+  chThdSleepMilliseconds(150);
+  chSysLock();
+  chMtxLockS(&m2);   /* For coverage of the chMtxLockS() function variant.*/
+  chMtxUnlockS(&m2); /* For coverage of the chMtxUnlockS() function variant.*/
+  chSchRescheduleS();
+  chSysUnlock();
+}
+
+#if CH_CFG_USE_CONDVARS || defined(__DOXYGEN__)
+static THD_FUNCTION(thread6, p) {
+
+  chMtxLock(&m1);
+  chCondWait(&c1);
+  test_emit_token(*(char *)p);
+  chMtxUnlock(&m1);
+}
+
+static THD_FUNCTION(thread8, p) {
+
+  chMtxLock(&m2);
+  chMtxLock(&m1);
+#if CH_CFG_USE_CONDVARS_TIMEOUT || defined(__DOXYGEN__)
+  chCondWaitTimeout(&c1, TIME_INFINITE);
+#else
+  chCondWait(&c1);
+#endif
+  test_emit_token(*(char *)p);
+  chMtxUnlock(&m1);
+  chMtxUnlock(&m2);
+}
+
+static THD_FUNCTION(thread9, p) {
+
+  chMtxLock(&m2);
+  test_emit_token(*(char *)p);
+  chMtxUnlock(&m2);
+}
+#endif /* CH_CFG_USE_CONDVARS */]]></value>
             </shared_code>
             <cases>
               <case>
                 <brief>
-                  <value>Suspend and Resume functionality.</value>
+                  <value>Priority enqueuing test.</value>
                 </brief>
                 <description>
-                  <value>The functionality of chThdSuspendTimeoutS() and chThdResumeI() is tested.</value>
+                  <value>Five threads, with increasing priority, are enqueued on a locked mutex then the mutex is unlocked. The test expects the threads to perform their operations in increasing priority order regardless of the initial order.</value>
                 </description>
                 <condition>
                   <value />
                 </condition>
                 <various_code>
                   <setup_code>
-                    <value><![CDATA[tr1 = NULL;]]></value>
+                    <value><![CDATA[chMtxObjectInit(&m1);]]></value>
                   </setup_code>
                   <teardown_code>
                     <value />
                   </teardown_code>
                   <local_variables>
-                    <value><![CDATA[systime_t time;
-msg_t msg;]]></value>
+                    <value><![CDATA[tprio_t prio;]]></value>
                   </local_variables>
                 </various_code>
                 <steps>
                   <step>
                     <description>
-                      <value>The function chThdSuspendTimeoutS() is invoked, the thread is remotely resumed with message @p MSG_OK. On return the message and the state of the reference are tested.</value>
+                      <value>Getting the initial priority.</value>
                     </description>
                     <tags>
                       <value />
                     </tags>
                     <code>
-                      <value><![CDATA[chSysLock();
-msg = chThdSuspendTimeoutS(&gtr1, TIME_INFINITE);
-chSysUnlock();
-test_assert(NULL == gtr1, "not NULL");
-test_assert(MSG_OK == msg,"wrong returned message");]]></value>
+                      <value><![CDATA[prio = chThdGetPriorityX();]]></value>
                     </code>
                   </step>
                   <step>
                     <description>
-                      <value>The function chThdSuspendTimeoutS() is invoked, the thread is not resumed so a timeout must occur. On return the message and the state of the reference are tested.</value>
+                      <value>Locking the mutex.</value>
                     </description>
                     <tags>
                       <value />
                     </tags>
                     <code>
-                      <value><![CDATA[chSysLock();
-time = chVTGetSystemTimeX();
-msg = chThdSuspendTimeoutS(&tr1, MS2ST(1000));
-chSysUnlock();
-test_assert_time_window(time + MS2ST(1000),
-                        time + MS2ST(1000) + 1,
-                        "out of time window");
-test_assert(NULL == tr1, "not NULL");
-test_assert(MSG_TIMEOUT == msg, "wrong returned message");]]></value>
+                      <value><![CDATA[chMtxLock(&m1);]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Five threads are created that try to lock and unlock the mutex then terminate. The threads are created in ascending priority order.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[threads[0] = chThdCreateStatic(wa[0], WA_SIZE, prio+1, thread1, "E");
+threads[1] = chThdCreateStatic(wa[1], WA_SIZE, prio+2, thread1, "D");
+threads[2] = chThdCreateStatic(wa[2], WA_SIZE, prio+3, thread1, "C");
+threads[3] = chThdCreateStatic(wa[3], WA_SIZE, prio+4, thread1, "B");
+threads[4] = chThdCreateStatic(wa[4], WA_SIZE, prio+5, thread1, "A");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Unlocking the mutex, the threads will wakeup in priority order because the mutext queue is an ordered one.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chMtxUnlock(&m1);
+test_wait_threads();
+test_assert(prio == chThdGetPriorityX(), "wrong priority level");
+test_assert_sequence("ABCDE", "invalid sequence");]]></value>
                     </code>
                   </step>
                 </steps>
               </case>
               <case>
                 <brief>
-                  <value>Events Flags functionality.</value>
+                  <value>Priority inheritance, simple case.</value>
                 </brief>
                 <description>
-                  <value>Event flags functionality is tested.</value>
+                  <value>Three threads are involved in the classic priority inversion scenario, a medium priority thread tries to starve an high priority thread by blocking a low priority thread into a mutex lock zone. The test expects the threads to reach their goal in increasing priority order by rearranging their priorities in order to avoid the priority inversion trap.</value>
                 </description>
                 <condition>
-                  <value>CH_CFG_USE_EVENTS</value>
+                  <value>CH_DBG_THREADS_PROFILING</value>
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chMtxObjectInit(&m1);]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[systime_t time;]]></value>
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Getting the system time for test duration measurement.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[time = test_wait_tick();]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>The three contenders threads are created and let run atomically, the goals sequence is tested, the threads must complete in priority order.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[threads[0] = chThdCreateStatic(wa[0], WA_SIZE, chThdGetPriorityX()-1, thread2H, 0);
+threads[1] = chThdCreateStatic(wa[1], WA_SIZE, chThdGetPriorityX()-2, thread2M, 0);
+threads[2] = chThdCreateStatic(wa[2], WA_SIZE, chThdGetPriorityX()-3, thread2L, 0);
+test_wait_threads();
+test_assert_sequence("ABC", "invalid sequence");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Testing that all threads completed within the specified time windows (100mS...100mS+ALLOWED_DELAY).</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[test_assert_time_window(time + MS2ST(100), time + MS2ST(100) + ALLOWED_DELAY,
+                        "out of time window");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Priority inheritance, complex case.</value>
+                </brief>
+                <description>
+                  <value>Five threads are involved in the complex priority inversion scenario, the priority inheritance algorithm is tested for depths greater than one. The test expects the threads to perform their operations in increasing priority order by rearranging their priorities in order to avoid the priority inversion trap.</value>
+                </description>
+                <condition>
+                  <value>CH_DBG_THREADS_PROFILING</value>
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chMtxObjectInit(&m1); /* Mutex B.*/
+chMtxObjectInit(&m2); /* Mutex A.*/]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[systime_t time;]]></value>
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Getting the system time for test duration measurement.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[time = test_wait_tick();]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>The five contenders threads are created and let run atomically, the goals sequence is tested, the threads must complete in priority order.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[threads[0] = chThdCreateStatic(wa[0], WA_SIZE, chThdGetPriorityX()-5, thread3LL, 0);
+threads[1] = chThdCreateStatic(wa[1], WA_SIZE, chThdGetPriorityX()-4, thread3L, 0);
+threads[2] = chThdCreateStatic(wa[2], WA_SIZE, chThdGetPriorityX()-3, thread3M, 0);
+threads[3] = chThdCreateStatic(wa[3], WA_SIZE, chThdGetPriorityX()-2, thread3H, 0);
+threads[4] = chThdCreateStatic(wa[4], WA_SIZE, chThdGetPriorityX()-1, thread3HH, 0);
+test_wait_threads();
+test_assert_sequence("ABCDE", "invalid sequence");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Testing that all threads completed within the specified time windows (110mS...110mS+ALLOWED_DELAY).</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[test_assert_time_window(time + MS2ST(110), time + MS2ST(110) + ALLOWED_DELAY,
+                        "out of time window");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Priority return verification.</value>
+                </brief>
+                <description>
+                  <value>Two threads are spawned that try to lock the mutexes already locked by the tester thread with precise timing. The test expects that the priority changes caused by the priority inheritance algorithm happen at the right moment and with the right values.&lt;br&gt;&#xD;
+Thread A performs wait(50), lock(m1), unlock(m1), exit. Thread B performs wait(150), lock(m2), unlock(m2), exit.</value>
+                </description>
+                <condition>
+                  <value />
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chMtxObjectInit(&m1);
+chMtxObjectInit(&m2);]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value><![CDATA[test_wait_threads();]]></value>
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[tprio_t p, pa, pb;]]></value>
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Getting current thread priority P(0) and assigning to the threads A and B priorities +1 and +2.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[p = chThdGetPriorityX();
+pa = p + 1;
+pb = p + 2;]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Spawning threads A and B at priorities P(A) and P(B).</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[threads[0] = chThdCreateStatic(wa[0], WA_SIZE, pa, thread4A, "A");
+threads[1] = chThdCreateStatic(wa[1], WA_SIZE, pb, thread4B, "B");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Locking the mutex M1 before thread A has a chance to lock it. The priority must not change because A has not yet reached chMtxLock(M1). the mutex is not locked.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chMtxLock(&m1);
+test_assert(chThdGetPriorityX() == p, "wrong priority level");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Waiting 100mS, this makes thread A reach chMtxLock(M1) and get the mutex.  This must boost the priority of the current thread at the same level of thread A.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chThdSleepMilliseconds(100);
+test_assert(chThdGetPriorityX() == pa, "wrong priority level");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Locking the mutex M2 before thread B has a chance to lock it. The priority must not change because B has not yet reached chMtxLock(M2). the mutex is not locked.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chMtxLock(&m2);
+test_assert(chThdGetPriorityX() == pa, "wrong priority level");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Waiting 100mS, this makes thread B reach chMtxLock(M2) and get the mutex. This must boost the priority of the current thread at the same level of thread B.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chThdSleepMilliseconds(100);
+test_assert(chThdGetPriorityX() == pb, "wrong priority level");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Unlocking M2, the priority should fall back to P(A).</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chMtxUnlock(&m2);
+test_assert(chThdGetPriorityX() == pa, "wrong priority level");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Unlocking M1, the priority should fall back to P(0).</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chMtxUnlock(&m1);
+test_assert(chThdGetPriorityX() == p, "wrong priority level");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Repeated locks, non recursive scenario.</value>
+                </brief>
+                <description>
+                  <value>The behavior of multiple mutex locks from the same thread is tested when recursion is disabled</value>
+                </description>
+                <condition>
+                  <value>!CH_CFG_USE_MUTEXES_RECURSIVE</value>
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chMtxObjectInit(&m1);]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[bool b;
+tprio_t prio;]]></value>
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Getting current thread priority for later checks.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[prio = chThdGetPriorityX();]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Locking the mutex first time, it must be possible because it is not owned.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[b = chMtxTryLock(&m1);
+test_assert(b, "already locked");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Locking the mutex second time, it must fail because it is already owned.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[b = chMtxTryLock(&m1);
+test_assert(!b, "not locked");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Unlocking the mutex then it must not be owned anymore and the queue must be empty.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chMtxUnlock(&m1);
+test_assert(m1.owner == NULL, "still owned");
+test_assert(queue_isempty(&m1.queue), "queue not empty");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Testing that priority has not changed after operations.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[test_assert(chThdGetPriorityX() == prio, "wrong priority level");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Testing chMtxUnlockAll() behavior.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[b = chMtxTryLock(&m1);
+test_assert(b, "already locked");
+b = chMtxTryLock(&m1);
+test_assert(!b, "not locked");
+
+chMtxUnlockAll();
+test_assert(m1.owner == NULL, "still owned");
+test_assert(queue_isempty(&m1.queue), "queue not empty");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Testing that priority has not changed after operations.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[test_assert(chThdGetPriorityX() == prio, "wrong priority level");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Repeated locks using, recursive scenario.</value>
+                </brief>
+                <description>
+                  <value>The behavior of multiple mutex locks from the same thread is tested when recursion is enabled</value>
+                </description>
+                <condition>
+                  <value>CH_CFG_USE_MUTEXES_RECURSIVE</value>
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chMtxObjectInit(&m1);]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[bool b;
+tprio_t prio;]]></value>
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Getting current thread priority for later checks.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[prio = chThdGetPriorityX();]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Locking the mutex first time, it must be possible because it is not owned.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[b = chMtxTryLock(&m1);
+test_assert(b, "already locked");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Locking the mutex second time, it must be possible because it is recursive.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[b = chMtxTryLock(&m1);
+test_assert(b, "already locked");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Unlocking the mutex then it must be still owned because recursivity.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chMtxUnlock(&m1);
+test_assert(m1.owner != NULL, "not owned");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Unlocking the mutex then it must not be owned anymore and the queue must be empty.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chMtxUnlock(&m1);
+test_assert(m1.owner == NULL, "still owned");
+test_assert(queue_isempty(&m1.queue), "queue not empty");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Testing that priority has not changed after operations.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[test_assert(chThdGetPriorityX() == prio, "wrong priority level");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Testing consecutive chMtxTryLock()/chMtxTryLockS() calls and a final chMtxUnlockAllS().</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[b = chMtxTryLock(&m1);
+test_assert(b, "already locked");
+chSysLock();
+b = chMtxTryLockS(&m1);
+chSysUnlock();
+test_assert(b, "already locked");
+test_assert(m1.cnt == 2, "invalid recursion counter");
+chSysLock();
+chMtxUnlockAllS();
+chSysUnlock();
+test_assert(m1.owner == NULL, "still owned");
+test_assert(queue_isempty(&m1.queue), "queue not empty");
+test_assert(m1.cnt == 0, "invalid recursion counter");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Testing consecutive chMtxLock()/chMtxLockS() calls and a final chMtxUnlockAll().</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chMtxLock(&m1);
+test_assert(m1.owner != NULL, "not owned");
+chSysLock();
+chMtxLockS(&m1);
+chSysUnlock();
+test_assert(m1.owner != NULL, "not owned");
+test_assert(m1.cnt == 2, "invalid recursion counter");
+chMtxUnlockAll();
+test_assert(m1.owner == NULL, "still owned");
+test_assert(queue_isempty(&m1.queue), "queue not empty");
+test_assert(m1.cnt == 0, "invalid recursion counter");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Testing that priority has not changed after operations.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[test_assert(chThdGetPriorityX() == prio, "wrong priority level");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Condition Variable signal test.</value>
+                </brief>
+                <description>
+                  <value>Five threads take a mutex and then enter a conditional variable queue, the tester thread then proceeds to signal the conditional variable five times atomically.&lt;br&gt;&#xD;
+The test expects the threads to reach their goal in increasing priority order regardless of the initial order.</value>
+                </description>
+                <condition>
+                  <value>CH_CFG_USE_CONDVARS</value>
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chCondObjectInit(&c1);
+chMtxObjectInit(&m1);]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value />
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Starting the five threads with increasing priority, the threads will queue on the condition variable.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[tprio_t prio = chThdGetPriorityX();
+threads[0] = chThdCreateStatic(wa[0], WA_SIZE, prio+1, thread6, "E");
+threads[1] = chThdCreateStatic(wa[1], WA_SIZE, prio+2, thread6, "D");
+threads[2] = chThdCreateStatic(wa[2], WA_SIZE, prio+3, thread6, "C");
+threads[3] = chThdCreateStatic(wa[3], WA_SIZE, prio+4, thread6, "B");
+threads[4] = chThdCreateStatic(wa[4], WA_SIZE, prio+5, thread6, "A");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Atomically signaling the condition variable five times then waiting for the threads to terminate in priority order, the order is tested.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chSysLock();
+chCondSignalI(&c1);
+chCondSignalI(&c1);
+chCondSignalI(&c1);
+chCondSignalI(&c1);
+chCondSignalI(&c1);
+chSchRescheduleS();
+chSysUnlock();
+test_wait_threads();
+test_assert_sequence("ABCDE", "invalid sequence");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Condition Variable broadcast test.</value>
+                </brief>
+                <description>
+                  <value>Five threads take a mutex and then enter a conditional variable queue, the tester thread then proceeds to broadcast the conditional variable.&lt;br&gt;&#xD;
+The test expects the threads to reach their goal in increasing priority order regardless of the initial order.</value>
+                </description>
+                <condition>
+                  <value>CH_CFG_USE_CONDVARS</value>
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chCondObjectInit(&c1);
+chMtxObjectInit(&m1);]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value />
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Starting the five threads with increasing priority, the threads will queue on the condition variable.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[tprio_t prio = chThdGetPriorityX();
+threads[0] = chThdCreateStatic(wa[0], WA_SIZE, prio+1, thread6, "E");
+threads[1] = chThdCreateStatic(wa[1], WA_SIZE, prio+2, thread6, "D");
+threads[2] = chThdCreateStatic(wa[2], WA_SIZE, prio+3, thread6, "C");
+threads[3] = chThdCreateStatic(wa[3], WA_SIZE, prio+4, thread6, "B");
+threads[4] = chThdCreateStatic(wa[4], WA_SIZE, prio+5, thread6, "A");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Broarcasting on the condition variable then waiting for the threads to terminate in priority order, the order is tested.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chCondBroadcast(&c1);
+test_wait_threads();
+test_assert_sequence("ABCDE", "invalid sequence");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Condition Variable priority boost test.</value>
+                </brief>
+                <description>
+                  <value>This test case verifies the priority boost of a thread waiting on a conditional variable queue. It tests this very specific situation in order to improve code coverage. The created threads perform the following operations: TA{lock(M2), lock(M1), wait(C1), unlock(M1), unlock(M2)}, TB{lock(M2), wait(C1), unlock(M2)}. TC{lock(M1), unlock(M1)}.</value>
+                </description>
+                <condition>
+                  <value />
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chCondObjectInit(&c1);
+chMtxObjectInit(&m1);
+chMtxObjectInit(&m2);]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[tprio_t prio;]]></value>
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Reading current base priority.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[prio = chThdGetPriorityX();]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Thread A is created at priority P(+1), it locks M2, locks M1 and goes to wait on C1.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[threads[0] = chThdCreateStatic(wa[0], WA_SIZE, prio+1, thread8, "A");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Thread C is created at priority P(+2), it enqueues on M1 and boosts TA priority at P(+2).</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[threads[1] = chThdCreateStatic(wa[1], WA_SIZE, prio+2, thread6, "C");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Thread B is created at priority P(+3), it enqueues on M2 and boosts TA priority at P(+3).</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[threads[2] = chThdCreateStatic(wa[2], WA_SIZE, prio+3, thread9, "B");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Signaling C1: TA wakes up, unlocks M1 and priority goes to P(+2). TB locks M1, unlocks M1 and completes. TA unlocks M2 and priority goes to P(+1). TC waits on C1. TA completes.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chCondSignal(&c1);]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Signaling C1: TC wakes up, unlocks M1 and completes.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chCondSignal(&c1);]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Checking the order of operations.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[test_wait_threads();
+test_assert_sequence("ABC", "invalid sequence");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+            </cases>
+          </sequence>
+          <sequence>
+            <type index="0">
+              <value>Internal Tests</value>
+            </type>
+            <brief>
+              <value>Synchronous Messages.</value>
+            </brief>
+            <description>
+              <value>This module implements the test sequence for the Synchronous Messages subsystem.</value>
+            </description>
+            <condition>
+              <value>CH_CFG_USE_MESSAGES</value>
+            </condition>
+            <shared_code>
+              <value><![CDATA[static THD_FUNCTION(msg_thread1, p) {
+
+  chMsgSend(p, 'A');
+  chMsgSend(p, 'B');
+  chMsgSend(p, 'C');
+  chMsgSend(p, 'D');
+}]]></value>
+            </shared_code>
+            <cases>
+              <case>
+                <brief>
+                  <value>Messages Server loop.</value>
+                </brief>
+                <description>
+                  <value>A messenger thread is spawned that sends four messages back to the tester thread.&lt;br&gt;&#xD;
+The test expect to receive the messages in the correct sequence and to not find a fifth message waiting.</value>
+                </description>
+                <condition>
+                  <value />
                 </condition>
                 <various_code>
                   <setup_code>
@@ -890,55 +2335,583 @@ test_assert(MSG_TIMEOUT == msg, "wrong returned message");]]></value>
                     <value />
                   </teardown_code>
                   <local_variables>
-                    <value><![CDATA[systime_t time;
-eventmask_t events;]]></value>
+                    <value><![CDATA[thread_t *tp;
+msg_t msg;]]></value>
                   </local_variables>
                 </various_code>
                 <steps>
                   <step>
                     <description>
-                      <value>A set of event flags are set on the current thread then the function chEvtWaitAnyTimeout() is invoked, the function is supposed to return immediately because the event flags are already pending, after return the events mask is tested.</value>
+                      <value>Starting the messenger thread.</value>
                     </description>
                     <tags>
                       <value />
                     </tags>
                     <code>
-                      <value><![CDATA[time = chVTGetSystemTimeX();
-chEvtSignal(chThdGetSelfX(), 0x55);
-events = chEvtWaitAnyTimeout(ALL_EVENTS, MS2ST(1000));
-test_assert((eventmask_t)0 != events, "timed out");
-test_assert((eventmask_t)0x55 == events, "wrong events mask");]]></value>
+                      <value><![CDATA[threads[0] = chThdCreateStatic(wa[0], WA_SIZE, chThdGetPriorityX() + 1,
+                               msg_thread1, chThdGetSelfX());]]></value>
                     </code>
                   </step>
                   <step>
                     <description>
-                      <value>The pending event flags mask is cleared then the function chEvtWaitAnyTimeout() is invoked, after return the events mask is tested. The thread is signaled by another thread.</value>
+                      <value>Waiting for four messages then testing the receive order.</value>
                     </description>
                     <tags>
                       <value />
                     </tags>
                     <code>
-                      <value><![CDATA[time = chVTGetSystemTimeX();
-chThdGetSelfX()->epmask = 0;
-events = chEvtWaitAnyTimeout(ALL_EVENTS, MS2ST(1000));
-test_assert((eventmask_t)0 != events, "timed out");
-test_assert((eventmask_t)0x55 == events, "wrong events mask");]]></value>
+                      <value><![CDATA[unsigned i;
+
+for (i = 0; i < 4; i++) {
+  tp = chMsgWait();
+  msg = chMsgGet(tp);
+  chMsgRelease(tp, msg);
+  test_emit_token(msg);
+}
+test_wait_threads();
+test_assert_sequence("ABCD", "invalid sequence");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+            </cases>
+          </sequence>
+          <sequence>
+            <type index="0">
+              <value>Internal Tests</value>
+            </type>
+            <brief>
+              <value>Event Sources and Event Flags.</value>
+            </brief>
+            <description>
+              <value>This module implements the test sequence for the Events subsystem.</value>
+            </description>
+            <condition>
+              <value>CH_CFG_USE_EVENTS</value>
+            </condition>
+            <shared_code>
+              <value><![CDATA[static EVENTSOURCE_DECL(es1);
+static EVENTSOURCE_DECL(es2);
+
+static void h1(eventid_t id) {(void)id;test_emit_token('A');}
+static void h2(eventid_t id) {(void)id;test_emit_token('B');}
+static void h3(eventid_t id) {(void)id;test_emit_token('C');}
+static ROMCONST evhandler_t evhndl[] = {h1, h2, h3};
+
+static THD_FUNCTION(evt_thread3, p) {
+
+  chThdSleepMilliseconds(50);
+  chEvtSignal((thread_t *)p, 1);
+}
+
+static THD_FUNCTION(evt_thread7, p) {
+
+  (void)p;
+  chEvtBroadcast(&es1);
+  chThdSleepMilliseconds(50);
+  chEvtBroadcast(&es2);
+}]]></value>
+            </shared_code>
+            <cases>
+              <case>
+                <brief>
+                  <value>Events registration.</value>
+                </brief>
+                <description>
+                  <value>Two event listeners are registered on an event source and then unregistered in the same order.&lt;br&gt;&#xD;
+The test expects that the even source has listeners after the registrations and after the first unregistration, then, after the second unegistration, the test expects no more listeners.</value>
+                </description>
+                <condition>
+                  <value />
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value />
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[event_listener_t el1, el2;]]></value>
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>An Event Source is initialized.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chEvtObjectInit(&es1);]]></value>
                     </code>
                   </step>
                   <step>
                     <description>
-                      <value>The function chEvtWaitAnyTimeout() is invoked, no event can wakeup the thread, the function must return because timeout.</value>
+                      <value>Two Event Listeners are registered on the Event Source, the Event Source  is tested to have listeners.</value>
                     </description>
                     <tags>
                       <value />
                     </tags>
                     <code>
-                      <value><![CDATA[time = chVTGetSystemTimeX();
-events = chEvtWaitAnyTimeout(0, MS2ST(1000));
-test_assert_time_window(time + MS2ST(1000),
-                        time + MS2ST(1000) + 1,
+                      <value><![CDATA[chEvtRegisterMask(&es1, &el1, 1);
+chEvtRegisterMask(&es1, &el2, 2);
+test_assert_lock(chEvtIsListeningI(&es1), "no listener");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>An Event Listener is unregistered, the Event Source must still have listeners.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chEvtUnregister(&es1, &el1);
+test_assert_lock(chEvtIsListeningI(&es1), "no listener");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>An Event Listener is unregistered, the Event Source must not have listeners.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chEvtUnregister(&es1, &el2);
+test_assert_lock(!chEvtIsListeningI(&es1), "stuck listener");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Event Flags dispatching.</value>
+                </brief>
+                <description>
+                  <value>The test dispatches three event flags and verifies that the associated event handlers are invoked in LSb-first order.</value>
+                </description>
+                <condition>
+                  <value />
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chEvtGetAndClearEvents(ALL_EVENTS);]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value />
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Three evenf flag bits are raised then chEvtDispatch() is invoked, the sequence of handlers calls is tested.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chEvtDispatch(evhndl, 7);
+test_assert_sequence("ABC", "invalid sequence");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Events Flags wait using chEvtWaitOne().</value>
+                </brief>
+                <description>
+                  <value>Functionality of chEvtWaitOne() is tested under various scenarios.</value>
+                </description>
+                <condition>
+                  <value />
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chEvtGetAndClearEvents(ALL_EVENTS);]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[eventmask_t m;
+systime_t target_time;]]></value>
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Setting three event flags.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chEvtAddEvents(7);]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Calling chEvtWaitOne() three times, each time a single flag must be returned in order of priority.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[m = chEvtWaitOne(ALL_EVENTS);
+test_assert(m == 1, "single event error");
+m = chEvtWaitOne(ALL_EVENTS);
+test_assert(m == 2, "single event error");
+m = chEvtWaitOne(ALL_EVENTS);
+test_assert(m == 4, "single event error");
+m = chEvtGetAndClearEvents(ALL_EVENTS);
+test_assert(m == 0, "stuck event");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Getting current time and starting a signaler thread, the thread will set an event flag after 50mS.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[target_time = test_wait_tick() + MS2ST(50);
+threads[0] = chThdCreateStatic(wa[0], WA_SIZE, chThdGetPriorityX() - 1,
+                               evt_thread3, chThdGetSelfX());]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Calling chEvtWaitOne() then verifying that the event has been received after 50mS and that the event flags mask has been emptied.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[m = chEvtWaitOne(ALL_EVENTS);
+test_assert_time_window(target_time, target_time + ALLOWED_DELAY,
                         "out of time window");
-test_assert((eventmask_t)0 == events, "wrong events mask");]]></value>
+test_assert(m == 1, "event flag error");
+m = chEvtGetAndClearEvents(ALL_EVENTS);
+test_assert(m == 0, "stuck event");
+test_wait_threads();]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Events Flags wait using chEvtWaitAny().</value>
+                </brief>
+                <description>
+                  <value>Functionality of chEvtWaitAny() is tested under various scenarios.</value>
+                </description>
+                <condition>
+                  <value />
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chEvtGetAndClearEvents(ALL_EVENTS);]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[eventmask_t m;
+systime_t target_time;]]></value>
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Setting two, non contiguous, event flags.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chEvtAddEvents(5);]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Calling chEvtWaitAny() one time, the two flags must be returned.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[m = chEvtWaitAny(ALL_EVENTS);
+test_assert(m == 5, "unexpected pending bit");
+m = chEvtGetAndClearEvents(ALL_EVENTS);
+test_assert(m == 0, "stuck event");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Getting current time and starting a signaler thread, the thread will set an event flag after 50mS.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[target_time = test_wait_tick() + MS2ST(50);
+threads[0] = chThdCreateStatic(wa[0], WA_SIZE, chThdGetPriorityX() - 1,
+                               evt_thread3, chThdGetSelfX());]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Calling chEvtWaitAny() then verifying that the event has been received after 50mS and that the event flags mask has been emptied.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[m = chEvtWaitAny(ALL_EVENTS);
+test_assert_time_window(target_time, target_time + ALLOWED_DELAY,
+                        "out of time window");
+test_assert(m == 1, "event flag error");
+m = chEvtGetAndClearEvents(ALL_EVENTS);
+test_assert(m == 0, "stuck event");
+test_wait_threads();]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Events Flags wait using chEvtWaitAll().</value>
+                </brief>
+                <description>
+                  <value>Functionality of chEvtWaitAll() is tested under various scenarios.</value>
+                </description>
+                <condition>
+                  <value />
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chEvtGetAndClearEvents(ALL_EVENTS);]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[eventmask_t m;
+systime_t target_time;]]></value>
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Setting two, non contiguous, event flags.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chEvtAddEvents(5);]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Calling chEvtWaitAll() one time, the two flags must be returned.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[m = chEvtWaitAll(5);
+test_assert(m == 5, "unexpected pending bit");
+m = chEvtGetAndClearEvents(ALL_EVENTS);
+test_assert(m == 0, "stuck event");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Setting one event flag.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chEvtAddEvents(4);]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Getting current time and starting a signaler thread, the thread will set another event flag after 50mS.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[target_time = test_wait_tick() + MS2ST(50);
+threads[0] = chThdCreateStatic(wa[0], WA_SIZE, chThdGetPriorityX() - 1,
+                               evt_thread3, chThdGetSelfX());]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Calling chEvtWaitAll() then verifying that both event flags have been received after 50mS and that the event flags mask has been emptied.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[m = chEvtWaitAll(5);
+test_assert_time_window(target_time, target_time + ALLOWED_DELAY,
+                        "out of time window");
+test_assert(m == 5, "event flags error");
+m = chEvtGetAndClearEvents(ALL_EVENTS);
+test_assert(m == 0, "stuck event");
+test_wait_threads();]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Events Flags wait timeouts.</value>
+                </brief>
+                <description>
+                  <value>Timeout functionality is tested for chEvtWaitOneTimeout(), chEvtWaitAnyTimeout() and chEvtWaitAllTimeout().</value>
+                </description>
+                <condition>
+                  <value />
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chEvtGetAndClearEvents(ALL_EVENTS);]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[eventmask_t m;]]></value>
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>The functions are invoked first with TIME_IMMEDIATE timeout, the timeout condition is tested.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[m = chEvtWaitOneTimeout(ALL_EVENTS, TIME_IMMEDIATE);
+test_assert(m == 0, "spurious event");
+m = chEvtWaitAnyTimeout(ALL_EVENTS, TIME_IMMEDIATE);
+test_assert(m == 0, "spurious event");
+m = chEvtWaitAllTimeout(ALL_EVENTS, TIME_IMMEDIATE);
+test_assert(m == 0, "spurious event");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>The functions are invoked first with a 50mS timeout, the timeout condition is tested.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[m = chEvtWaitOneTimeout(ALL_EVENTS, MS2ST(50));
+test_assert(m == 0, "spurious event");
+m = chEvtWaitAnyTimeout(ALL_EVENTS, MS2ST(50));
+test_assert(m == 0, "spurious event");
+m = chEvtWaitAllTimeout(ALL_EVENTS, MS2ST(50));
+test_assert(m == 0, "spurious event");]]></value>
+                    </code>
+                  </step>
+                </steps>
+              </case>
+              <case>
+                <brief>
+                  <value>Broadcasting using chEvtBroadcast().</value>
+                </brief>
+                <description>
+                  <value>Functionality of chEvtBroadcast() is tested.</value>
+                </description>
+                <condition>
+                  <value />
+                </condition>
+                <various_code>
+                  <setup_code>
+                    <value><![CDATA[chEvtGetAndClearEvents(ALL_EVENTS);
+chEvtObjectInit(&es1);
+chEvtObjectInit(&es2);]]></value>
+                  </setup_code>
+                  <teardown_code>
+                    <value />
+                  </teardown_code>
+                  <local_variables>
+                    <value><![CDATA[eventmask_t m;
+event_listener_t el1, el2;
+systime_t target_time;]]></value>
+                  </local_variables>
+                </various_code>
+                <steps>
+                  <step>
+                    <description>
+                      <value>Registering on two event sources associating them with flags 1 and 4.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chEvtRegisterMask(&es1, &el1, 1);
+chEvtRegisterMask(&es2, &el2, 4);]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Getting current time and starting a broadcaster thread, the thread broadcast the first Event Source immediately and the other after 50mS.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[target_time = test_wait_tick() + MS2ST(50);
+threads[0] = chThdCreateStatic(wa[0], WA_SIZE, chThdGetPriorityX() - 1,
+                               evt_thread7, "A");]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Calling chEvtWaitAll() then verifying that both event flags have been received after 50mS and that the event flags mask has been emptied.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[m = chEvtWaitAll(5);
+test_assert_time_window(target_time, target_time + ALLOWED_DELAY,
+                        "out of time window");
+m = chEvtGetAndClearEvents(ALL_EVENTS);
+test_assert(m == 0, "stuck event");
+test_wait_threads();]]></value>
+                    </code>
+                  </step>
+                  <step>
+                    <description>
+                      <value>Unregistering from the Event Sources.</value>
+                    </description>
+                    <tags>
+                      <value />
+                    </tags>
+                    <code>
+                      <value><![CDATA[chEvtUnregister(&es1, &el1);
+chEvtUnregister(&es2, &el2);
+test_assert(!chEvtIsListeningI(&es1), "stuck listener");
+test_assert(!chEvtIsListeningI(&es2), "stuck listener");]]></value>
                     </code>
                   </step>
                 </steps>
@@ -953,14 +2926,13 @@ test_assert((eventmask_t)0 == events, "wrong events mask");]]></value>
               <value>Mailboxes.</value>
             </brief>
             <description>
-              <value>This sequence tests the ChibiOS/NIL functionalities related to mailboxes.</value>
+              <value>This sequence tests the ChibiOS/RT functionalities related to mailboxes.</value>
             </description>
             <condition>
               <value>CH_CFG_USE_MAILBOXES</value>
             </condition>
             <shared_code>
-              <value><![CDATA[#define ALLOWED_DELAY MS2ST(5)
-#define MB_SIZE 4
+              <value><![CDATA[#define MB_SIZE 4
 
 static msg_t mb_buffer[MB_SIZE];
 static MAILBOX_DECL(mb1, mb_buffer, MB_SIZE);]]></value>
@@ -1320,7 +3292,7 @@ test_assert(msg1 == MSG_TIMEOUT, "wrong wake-up message");]]></value>
               <value>Memory Pools.</value>
             </brief>
             <description>
-              <value>This sequence tests the ChibiOS/NIL functionalities related to memory pools.</value>
+              <value>This sequence tests the ChibiOS/RT functionalities related to memory pools.</value>
             </description>
             <condition>
               <value>CH_CFG_USE_MEMPOOLS</value>
@@ -1584,7 +3556,7 @@ test_assert(chPoolAlloc(&mp1) == NULL, "provider returned memory");]]></value>
               <value>Memory Heaps.</value>
             </brief>
             <description>
-              <value>This sequence tests the ChibiOS/NIL functionalities related to memory heaps.</value>
+              <value>This sequence tests the ChibiOS/RT functionalities related to memory heaps.</value>
             </description>
             <condition>
               <value>CH_CFG_USE_HEAP</value>

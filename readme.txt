@@ -79,6 +79,9 @@
 *****************************************************************************
 
 *** Next ***
+- VAR: Changed GCC asm files extension from .s to .S because conventions.
+- VAR: Updated CMSIS to version 4.50, it still contains the same errors
+       found in 4.30, fixes applied.
 - HAL: All high level file names have been renamed and prefixed with "hal_"
        in order to minimize the risk of name conflicts when integrating
        external libraries. 

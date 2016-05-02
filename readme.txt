@@ -79,6 +79,8 @@
 *****************************************************************************
 
 *** Next ***
+- VAR: Cortex-M VTOR initialization is now performed in startup files and
+       no more in port initialization.
 - VAR: Changed GCC asm files extension from .s to .S because conventions.
 - VAR: Updated CMSIS to version 4.50, it still contains the same errors
        found in 4.30, fixes applied.
@@ -109,8 +111,12 @@
 - RT:  Merged RT4.
 - NIL: Merged NIL2.
 - NIL: Added STM32F7 demo.
+- HAL: Fixed missing SDC initialization in RT-STM32F103-OLIMEX_STM32_P103 demo
+       (bug #735)(backported to 16.1.5).
+- HAL: Fixed STM32 dac bug when using only channel 2 in direct mode (bug #734)
+       (backported to 3.0.6 and 16.1.5).
 - HAL: Fixed PAL lines support not working for STM32 GPIOv1 (bug #730)
-       (backported to 16.1.4).
+       (backported to 16.1.5).
 - RT:  Fixed bug in chSchPreemption() function (bug #728)(backported to 2.6.10,
        3.0.6 and 16.1.5).
 - HAL: Fixed prescaler not initialized in STM32 ADCv1 (bug #725)

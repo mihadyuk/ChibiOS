@@ -18,9 +18,10 @@
 */
 
 /**
- * @file    n25q128.h
- * @brief   N25Q128 flash interface module header.
+ * @file    n25q128_spi.h
+ * @brief   N25Q128 over SPI driver header.
  *
+ * @addtogroup n25q128_spi
  * @{
  */
 
@@ -71,7 +72,7 @@
  * @name    Status register bits
  * @{
  */
-#define N25Q128_STS_BUSY                            0x80U
+#define N25Q128_STS_PROGRAM_ERASE                   0x80U
 #define N25Q128_STS_ERASE_SUSPEND                   0x40U
 #define N25Q128_STS_ERASE_ERROR                     0x20U
 #define N25Q128_STS_PROGRAM_ERROR                   0x10U
@@ -114,6 +115,13 @@
 #if !defined(N25Q128_NICE_WAITING) || defined(__DOXYGEN__)
 #define N25Q128_NICE_WAITING                TRUE
 #endif
+
+/**
+ * @brief   Uses 4kB sub-sectors rather than 64kB sectors.
+ */
+#if !defined(N25Q128_USE_SUB_SECTORS) || defined(__DOXYGEN__)
+#define N25Q128_USE_SUB_SECTORS             FALSE
+#endif
 /** @} */
 
 /*===========================================================================*/
@@ -137,11 +145,11 @@
  */
 typedef struct {
   /**
-   * @brief SPI driver associated to this L3GD20.
+   * @brief   SPI driver associated to this L3GD20.
    */
   SPIDriver                 *spip;
   /**
-   * @brief SPI configuration associated to this L3GD20.
+   * @brief   SPI configuration associated to this L3GD20.
    */
   const SPIConfig           *spicfg;
 } N25Q128Config;
@@ -189,9 +197,10 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void n15q128ObjectInit(N25Q128Driver *devp);
-  void n15q128Start(N25Q128Driver *devp, const N25Q128Config *config);
-  void n15q128Stop(N25Q128Driver *devp);
+  void n25q128ObjectInit(N25Q128Driver *devp);
+  void n25q128Start(N25Q128Driver *devp, const N25Q128Config *config);
+  void n25q128Stop(N25Q128Driver *devp);
+  void n25q128ReadId(N25Q128Driver *devp, uint8_t *rp, size_t n);
 #ifdef __cplusplus
 }
 #endif

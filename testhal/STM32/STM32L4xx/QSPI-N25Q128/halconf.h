@@ -118,7 +118,7 @@
  * @brief   Enables the QSPI subsystem.
  */
 #if !defined(HAL_USE_QSPI) || defined(__DOXYGEN__)
-#define HAL_USE_QSPI                FALSE
+#define HAL_USE_QSPI                TRUE
 #endif
 
 /**
@@ -153,7 +153,7 @@
  * @brief   Enables the SPI subsystem.
  */
 #if !defined(HAL_USE_SPI) || defined(__DOXYGEN__)
-#define HAL_USE_SPI                 TRUE
+#define HAL_USE_SPI                 FALSE
 #endif
 
 /**

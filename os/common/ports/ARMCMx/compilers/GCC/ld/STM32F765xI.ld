@@ -25,12 +25,12 @@
  */
 MEMORY
 {
-    flash       : org = 0x08000000, len = 1M
-    flash_itcm  : org = 0x00200000, len = 1M
-    ram0        : org = 0x20010000, len = 256k    /* SRAM1 + SRAM2 */
-    ram1        : org = 0x20010000, len = 240k    /* SRAM1 */
-    ram2        : org = 0x2004C000, len = 16k     /* SRAM2 */
-    ram3        : org = 0x20000000, len = 64k     /* DTCM-RAM */
+    flash       : org = 0x08000000, len = 2M
+    flash_itcm  : org = 0x00200000, len = 2M
+    ram0        : org = 0x20020000, len = 384k    /* SRAM1 + SRAM2 */
+    ram1        : org = 0x20020000, len = 368k    /* SRAM1 */
+    ram2        : org = 0x2007C000, len = 16k     /* SRAM2 */
+    ram3        : org = 0x20000000, len = 128k    /* DTCM-RAM */
     ram4        : org = 0x00000000, len = 16k     /* ITCM-RAM */
     ram5        : org = 0x40024000, len = 4k      /* BCKP SRAM */
     ram6        : org = 0x00000000, len = 0

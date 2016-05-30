@@ -41,9 +41,10 @@
 #define M25Q_CMD_RESET_ENABLE                       0x66
 #define M25Q_CMD_RESET_MEMORY                       0x99
 #define M25Q_CMD_READ_ID                            0x9F
+#define M25Q_CMD_MULTIPLE_IO_READ_ID                0xAF
 #define M25Q_CMD_READ_DISCOVERY_PARAMETER           0x5A
 #define M25Q_CMD_READ                               0x03
-#define M25Q_CMD_FAST_READ                          0x08
+#define M25Q_CMD_FAST_READ                          0x0B
 #define M25Q_CMD_WRITE_ENABLE                       0x06
 #define M25Q_CMD_WRITE_DISABLE                      0x04
 #define M25Q_CMD_READ_STATUS_REGISTER               0x05
@@ -112,6 +113,15 @@
 #endif
 
 /**
+ * @brief   Number of dummy cycles for fast read (1..15).
+ * @details This is the number of dummy cycles to be used for fast read
+ *          operations.
+ */
+#if !defined(M25Q_READ_DUMMY_CYCLES) || defined(__DOXYGEN__)
+#define M25Q_READ_DUMMY_CYCLES              8
+#endif
+
+/**
  * @brief   Switch QSPI bus width on initialization.
  * @details A bus width initialization is performed by writing the
  *          Enhanced Volatile Configuration Register. If the flash
@@ -150,6 +160,31 @@
 #if !defined(M25Q_USE_SUB_SECTORS) || defined(__DOXYGEN__)
 #define M25Q_USE_SUB_SECTORS                FALSE
 #endif
+
+/**
+ * @brief   Supported JEDEC manufacturer identifiers.
+ */
+#if !defined(M25Q_SUPPORTED_MANUFACTURE_IDS) || defined(__DOXYGEN__)
+#define M25Q_SUPPORTED_MANUFACTURE_IDS      {0x20}
+#endif
+
+/**
+ * @brief   Supported memory type identifiers.
+ */
+#if !defined(M25Q_SUPPORTED_MEMORY_TYPE_IDS) || defined(__DOXYGEN__)
+#define M25Q_SUPPORTED_MEMORY_TYPE_IDS      {0xBA, 0xBB}
+#endif
+
+/**
+ * @brief   Size of the compare buffer.
+ * @details This buffer is allocated in the stack frame of the function
+ *          @p flashVerifyErase() and its size must be a power of two.
+ *          Larger buffers lead to better verify performance but increase
+ *          stack usage for that function.
+ */
+#if !defined(M25Q_COMPARE_BUFFER_SIZE) || defined(__DOXYGEN__)
+#define M25Q_COMPARE_BUFFER_SIZE            32
+#endif
 /** @} */
 
 /*===========================================================================*/
@@ -168,6 +203,21 @@
     (M25Q_SHARED_SPI == TRUE) &&                                            \
     (SPI_USE_MUTUAL_EXCLUSION == FALSE)
 #error "M25Q_SHARED_SPI requires SPI_USE_MUTUAL_EXCLUSION"
+#endif
+
+#if (M25Q_BUS_MODE != M25Q_BUS_MODE_SPI) &&                                 \
+    (M25Q_BUS_MODE != M25Q_BUS_MODE_QSPI1L) &&                              \
+    (M25Q_BUS_MODE != M25Q_BUS_MODE_QSPI2L) &&                              \
+    (M25Q_BUS_MODE != M25Q_BUS_MODE_QSPI4L)
+#error "invalid M25Q_BUS_MODE selected"
+#endif
+
+#if (M25Q_READ_DUMMY_CYCLES < 1) || (M25Q_READ_DUMMY_CYCLES > 15)
+#error "invalid M25Q_READ_DUMMY_CYCLES value (1..15)"
+#endif
+
+#if (M25Q_COMPARE_BUFFER_SIZE & (M25Q_COMPARE_BUFFER_SIZE - 1)) != 0
+#error "invalid M25Q_COMPARE_BUFFER_SIZE value"
 #endif
 
 /*===========================================================================*/
@@ -229,12 +279,10 @@ typedef struct {
    * @brief   Current configuration data.
    */
   const M25QConfig              *config;
-#if (M25Q_BUS_MODE != M25Q_BUS_MODE_SPI) || defined(__DOXYGEN__)
   /**
-   * @brief   Command width flags to be used for commands sent over QSPI.
+   * @brief   Device ID and unique ID.
    */
-  uint32_t                      qspi_mode;
-#endif
+  uint8_t                       device_id[20];
 } M25QDriver;
 
 /*===========================================================================*/
@@ -251,6 +299,12 @@ extern "C" {
   void m25qObjectInit(M25QDriver *devp);
   void m25qStart(M25QDriver *devp, const M25QConfig *config);
   void m25qStop(M25QDriver *devp);
+#if (M25Q_BUS_MODE != M25Q_BUS_MODE_SPI) || defined(__DOXYGEN__)
+#if (QSPI_SUPPORTS_MEMMAP == TRUE) || defined(__DOXYGEN__)
+  void m25qMemoryMap(M25QDriver *devp, uint8_t ** addrp);
+  void m25qMemoryUnmap(M25QDriver *devp);
+#endif /* QSPI_SUPPORTS_MEMMAP == TRUE */
+#endif /* M25Q_BUS_MODE != M25Q_BUS_MODE_SPI */
 #ifdef __cplusplus
 }
 #endif

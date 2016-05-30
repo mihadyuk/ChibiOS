@@ -19,9 +19,10 @@
 
 #include "m25q.h"
 
+/* 16MB device, 2 cycles delay after NCS.*/
 const QSPIConfig qspicfg1 = {
   NULL,
-  0
+  STM32_DCR_FSIZE(24) | STM32_DCR_CSHT(1)
 };
 
 qspi_command_t cmd_read_id = {
@@ -34,7 +35,21 @@ qspi_command_t cmd_read_id = {
   0
 };
 
-uint8_t buffer[512];
+/*
+ * Generic buffer.
+ */
+uint8_t buffer[2048];
+
+const uint8_t pattern[128] = {
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+  16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+  16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+  16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+  16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31
+};
 
 M25QDriver m25q;
 
@@ -63,6 +78,7 @@ static THD_FUNCTION(Thread1, arg) {
  * Application entry point.
  */
 int main(void) {
+  flash_error_t err;
 
   /*
    * System initializations.
@@ -89,8 +105,38 @@ int main(void) {
    */
   m25qObjectInit(&m25q);
   m25qStart(&m25q, &m25qcfg1);
-//  qspiStart(&QSPID1, &qspicfg1);
-//  qspiReceive(&QSPID1, &cmd_read_id, 17, buffer);
+
+  /* Erasing the first sector and waiting for completion.*/
+  (void) flashStartEraseSector(&m25q, 0);
+  err = flashWaitErase((BaseFlash *)&m25q);
+  if (err != FLASH_NO_ERROR)
+    chSysHalt("erase error");
+
+  /* Verifying the erase operation.*/
+  err = flashVerifyErase(&m25q, 0);
+  if (err != FLASH_NO_ERROR)
+    chSysHalt("verify erase error");
+
+  /* Programming a pattern.*/
+  err = flashProgram(&m25q, 0, pattern, 128);
+  if (err != FLASH_NO_ERROR)
+    chSysHalt("program error");
+
+  /* Verifying the erase operation.*/
+  err = flashVerifyErase(&m25q, 0);
+  if (err != FLASH_ERROR_VERIFY)
+    chSysHalt("verify non-erase error");
+
+  /* Reading it back.*/
+  err = flashRead(&m25q, 0, buffer, 128);
+  if (err != FLASH_NO_ERROR)
+    chSysHalt("read error");
+
+  /* Erasing again.*/
+  (void) flashStartEraseSector(&m25q, 0);
+  err = flashWaitErase((BaseFlash *)&m25q);
+  if (err != FLASH_NO_ERROR)
+    chSysHalt("erase error");
 
   /*
    * Normal main() thread activity, in this demo it does nothing.

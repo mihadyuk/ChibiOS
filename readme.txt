@@ -74,6 +74,11 @@
 *****************************************************************************
 
 *** 3.0.6 ***
+- HAL: Fixed wrong comments and indent in STM32F4xx hal_lld.h (bug #746).
+- HAL: Removed wrong SAI masks in STM32F4xx hal_lld.h (bug #745).
+- HAL: Fixed wrong mask placement in STM32F4xx hal_lld.h (bug #744).
+- HAL: Fixed wrong indent in STM32F4xx hal_lld.h (bug #743).
+- HAL: Removed unused macros in STM32F4xx hal_lld.h (bug #742).
 - ALL: Startup files relicensed under Apache 2.0.
 - HAL: Fixed DAC driver not enabled for STM32F4x7 and STM32F4x9 devices
        (bug #739).

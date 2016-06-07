@@ -73,6 +73,21 @@
 *****************************************************************************
 
 *** 16.1.5 ***
+- HAL: Fixed wrong conditional branches in _adc_isr_error_code (bug #751).
+- HAL: Fixed bug in STM32/ADCv3 (bug #750).
+- HAL: Fixed OPT settings and added board folder in STM32F4xx-USB_CDC demo
+       (bug #749).
+- HAL: Fixed wrong comments in STM32F4xx GPT demo (bug #748).
+- HAL: Fixed wrong comments and indents in STM32F7xx-GPT-ADC and 
+       STM32L4-GPT-ADC demos (bug #747).
+- HAL: Fixed wrong comments and indent in STM32F4xx and STM32F7xx 
+       hal_lld.h (bug #746).
+- HAL: Removed wrong SAI masks in STM32F4xx hal_lld.h (bug #745).
+- HAL: Fixed wrong mask placement in STM32F4xx hal_lld.h (bug #744).
+- HAL: Fixed wrong indent in STM32F4xx hal_lld.h (bug #743).
+- HAL: Removed unused macros in STM32F7xx and STM32F4xx hal_lld.h (bug #742).
+- HAL: Fixed Doxygen related macros in STM32F7xx, STM32L0xx and STM32L4xx
+       lld files (bug #741).
 - HAL: Fixed bug in VREF enable/disable functions in ADCv3 driver 
        (bug #740).
 - HAL: Fixed DAC driver not enabled for STM32F4x7 and STM32F4x9 devices

@@ -79,6 +79,11 @@
 *****************************************************************************
 
 *** Next ***
+- HAL: Added events handling to the PAL driver. The EXT driver is now
+       deprecated but still supported.
+- EX:  Added flash implementation for Micron M25Qxxx devices.
+- HAL: Added base flash class and JESD216 serial flash class handling both SPI
+       and QSPI modes.
 - HAL: Extended PLLI2S for STM32F4xx subfamily.
 - HAL: Added QSPI driver implementation for STM32.
 - HAL: Added QSPI driver model.
@@ -111,9 +116,16 @@
        Shell files are now located under ./os/various/shell and have a
        dedicated shell.mk file.
 - ALL: Reorganized source tree, now ports are shared between RT and NIL.
+- EX:  New EX subsystem.
 - RT:  Merged RT4.
 - NIL: Merged NIL2.
 - NIL: Added STM32F7 demo.
+- HAL: Fixed misconfiguration in STM32L4 Discovery board files 
+       (bug #754)(backported to 16.1.5).
+- HAL: Fixed errors in documentation related to OTG peripheral switches 
+       (bug #753)(backported to 2.6.10, 3.0.6 and 16.1.5).
+- HAL: Fixed CMSIS function osThreadGetPriority() does not return correct
+       priority (bug #752)(backported 3.0.6 and 16.1.5).
 - HAL: Fixed wrong conditional branches in _adc_isr_error_code (bug #751)
        (backported to 2.6.10, 3.0.6 and 16.1.5).
 - HAL: Fixed bug in STM32/ADCv3 (bug #750).

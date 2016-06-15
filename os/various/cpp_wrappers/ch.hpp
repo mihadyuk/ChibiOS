@@ -910,6 +910,45 @@ namespace chibios_rt {
     }
   };
 
+#if CH_CFG_USE_DYNAMIC || defined(__DOXYGEN__)
+
+  class BaseDynamicThread : public BaseThread {
+    memory_heap_t &m_heap;
+    size_t m_waSize;
+  protected:
+
+  public:
+    /**
+     * @brief   Thread constructor.
+     * @details The thread object is initialized but the thread is not
+     *          started here.
+     *
+     * @init
+     */
+    BaseDynamicThread(memory_heap_t &heap, size_t waSize) : BaseThread(),
+      m_heap(heap),
+      m_waSize(waSize)
+    {
+    }
+
+    /**
+     * @brief   Creates and starts a system thread.
+     *
+     * @param[in] prio          thread priority
+     * @return                  A reference to the created thread with
+     *                          reference counter set to one.
+     *
+     * @api
+     */
+    virtual ThreadReference start(tprio_t prio) {
+      void _thd_start(void *arg);
+
+      thread_ref = chThdCreateFromHeap(&m_heap, m_waSize, prio, _thd_start, this);
+      return *this;
+    }
+  };
+#endif
+
 #if CH_CFG_USE_SEMAPHORES || defined(__DOXYGEN__)
   /*------------------------------------------------------------------------*
    * chibios_rt::CounterSemaphore                                           *

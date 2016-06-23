@@ -61,7 +61,10 @@
 #define PLATFORM_NAME           "STM32F756 Very High Performance with DSP and FPU"
 
 #elif defined(STM32F765xx)
-#define PLATFORM_NAME "STM32F756 Very High Performance with DSP and FPU double precision"
+#define PLATFORM_NAME "STM32F765 Very High Performance with DSP and FPU double precision"
+
+#elif defined(STM32F767xx)
+#define PLATFORM_NAME "STM32F767 Very High Performance with DSP and FPU double precision"
 
 #else
 #error "STM32F7xx device not specified"

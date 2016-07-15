@@ -24,7 +24,6 @@
  *
  * @{
  */
-
 #ifndef _L3GD20_H_
 #define _L3GD20_H_
 
@@ -35,7 +34,34 @@
 /*===========================================================================*/
 
 /**
+ * @name    Version identification
+ * @{
+ */
+/**
+ * @brief   L3GD20 driver version string.
+ */
+#define EX_L3GD20_VERSION           "1.0.0"
+
+/**
+ * @brief   L3GD20 driver version major number.
+ */
+#define EX_L3GD20_MAJOR             1
+
+/**
+ * @brief   L3GD20 driver version minor number.
+ */
+#define EX_L3GD20_MINOR             0
+
+/**
+ * @brief   L3GD20 driver version patch number.
+ */
+#define EX_L3GD20_PATCH             0
+/** @} */
+
+/**
  * @brief   L3GD20 characteristics
+ *
+ * @{
  */
 #define L3GD20_NUMBER_OF_AXES       3U
 
@@ -266,6 +292,11 @@
 #error "L3GD20_USE_SPI requires HAL_USE_SPI"
 #endif
 
+//TODO: add I2C support.
+#if L3GD20_USE_I2C
+#error "L3GD20 over I2C still not supported"
+#endif
+
 #if L3GD20_USE_I2C && !HAL_USE_I2C
 #error "L3GD20_USE_I2C requires HAL_USE_I2C"
 #endif
@@ -362,14 +393,6 @@ typedef enum {
 }l3gd20_end_t;
 
 /**
- * @brief   L3GD20 measurement unit.
- */
-typedef enum {
-  L3GD20_UNIT_DPS = 0x00,           /**< Cooked data in degrees per seconds.*/
-  L3GD20_UNIT_RPS = 0x01,           /**< Cooked data in radians per seconds.*/
-} l3gd20_unit_t;
-
-/**
  * @brief   Driver state machine possible states.
  */
 typedef enum {
@@ -411,10 +434,6 @@ typedef struct {
    * @brief L3GD20 initial bias.
    */
   float                     bias[L3GD20_NUMBER_OF_AXES];
-  /**
-   * @brief   L3GD20 initial measurement unit.
-   */
-  l3gd20_unit_t             unit;
   /**
    * @brief L3GD20 initial full scale value.
    */
@@ -463,13 +482,7 @@ typedef struct L3GD20Driver L3GD20Driver;
 #define _l3gd20_methods                                                     \
   _base_gyroscope_methods                                                   \
   /* Change full scale value of L3GD20 .*/                                  \
-  msg_t (*set_full_scale)(void *instance, l3gd20_fs_t fs);                  \
-  /* Get full scale value of L3GD20 .*/                                     \
-  l3gd20_fs_t (*get_full_scale)(void *instance);                            \
-  /* Change measurement unit of L3GD20 .*/                                  \
-  msg_t (*set_meas_unit)(void *instance, l3gd20_unit_t unit);               \
-  /* Get measurement unit of L3GD20 .*/                                     \
-  l3gd20_unit_t (*get_meas_unit)(void *instance);
+  msg_t (*set_full_scale)(void *instance, l3gd20_fs_t fs);
 
 /**
  * @extends BaseGyroscopeVMT
@@ -494,9 +507,7 @@ struct L3GD20VMT {
   /* Current Bias data.*/                                                   \
   float                     bias[L3GD20_NUMBER_OF_AXES];                    \
   /* Current full scale value.*/                                            \
-  float                     fullscale;                                      \
-  /* Measurement unit.*/                                                    \
-  l3gd20_unit_t             meas_unit;  
+  float                     fullscale;
 
 /**
  * @extends BaseGyroscope
@@ -521,7 +532,7 @@ struct L3GD20Driver {
 /*===========================================================================*/
 
 /**
- * @brief   Change initial fullscale value.
+ * @brief   Change gyroscope fullscale value.
  *
  * @param[in] ip        pointer to a @p BaseGyroscope class.
  * @param[in] fs        the new full scale value.
@@ -533,20 +544,6 @@ struct L3GD20Driver {
  */
 #define gyroscopeSetFullScale(ip, fs)                                       \
         (ip)->vmt_l3gd20->set_full_scale(ip, fs)
-
-/**
- * @brief   Set gyroscope cooked data measurement unit.
- *
- * @param[in] ip        pointer to a @p BaseGyroscope class.
- * @param[in] unit      the MEMS measurement unit.
- *
- * @return              The operation status.
- * @retval MSG_OK       if the function succeeded.
- * @retval MSG_RESET    if one or more errors occurred.
- * @api
- */
-#define gyroscopeSetMeasurementUnit(ip, unit)                               \
-        (ip)->vmt_l3gd20->set_meas_unit(ip, unit)
         
 /*===========================================================================*/
 /* External declarations.                                                    */

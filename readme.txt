@@ -79,6 +79,9 @@
 *****************************************************************************
 
 *** Next ***
+- EX:  Added compass implementation for ST LSM303DLHC device.
+- EX:  Added accelerometer implementation for ST LSM303DLHC device.
+- EX:  Added gyroscope implementation for ST L3GD20 device.
 - HAL: Added events handling to the PAL driver. The EXT driver is now
        deprecated but still supported.
 - EX:  Added flash implementation for Micron M25Qxxx devices.
@@ -120,6 +123,7 @@
 - RT:  Merged RT4.
 - NIL: Merged NIL2.
 - NIL: Added STM32F7 demo.
+- HAL: Fixed dependency on RT in hal_usb.c (bug #764)(backported to 16.1.6).
 - HAL: Fixed wrong backup domain reset in STM32L4xx\hal_lld (bug #763)
        (backported to 16.1.6).
 - HAL: Fixed wrong PWR configurations in STM32L4xx\hal_lld (bug #761)

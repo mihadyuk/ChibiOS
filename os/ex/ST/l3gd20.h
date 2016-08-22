@@ -59,7 +59,7 @@
 /** @} */
 
 /**
- * @brief   L3GD20 characteristics
+ * @brief   L3GD20 characteristics.
  *
  * @{
  */
@@ -167,7 +167,7 @@
  */
 #define L3GD20_CTRL_REG4_MASK       0xF1        /**< L3GD20_CTRL_REG4 mask  */
 #define L3GD20_CTRL_REG4_SIM        (1 << 0)    /**< SPI mode               */
-#define L3GD20_CTRL_REG4_FS_MASK    (3 << 4)    /**< Full scale mask        */
+#define L3GD20_CTRL_REG4_FS_MASK    0x30        /**< Full scale field mask  */
 #define L3GD20_CTRL_REG4_FS0        (1 << 4)    /**< Full scale bit 0       */
 #define L3GD20_CTRL_REG4_FS1        (1 << 5)    /**< Full scale bit 1       */
 #define L3GD20_CTRL_REG4_BLE        (1 << 6)    /**< Big/little endian data */
@@ -481,7 +481,7 @@ typedef struct L3GD20Driver L3GD20Driver;
  */
 #define _l3gd20_methods                                                     \
   _base_gyroscope_methods                                                   \
-  /* Change full scale value of L3GD20 .*/                                  \
+  /* Change full scale value of L3GD20.*/                                   \
   msg_t (*set_full_scale)(void *instance, l3gd20_fs_t fs);
 
 /**
@@ -532,7 +532,7 @@ struct L3GD20Driver {
 /*===========================================================================*/
 
 /**
- * @brief   Change gyroscope fullscale value.
+ * @brief   Change gyroscope full scale value.
  *
  * @param[in] ip        pointer to a @p BaseGyroscope class.
  * @param[in] fs        the new full scale value.

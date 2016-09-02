@@ -79,6 +79,9 @@
 *****************************************************************************
 
 *** Next ***
+- HAL: Added an advanced buffering mode to the serial driver, now, if the
+       LLD supports it, it is possible to set the size of each queue
+       independently.
 - EX:  Added compass implementation for ST LSM303DLHC device.
 - EX:  Added accelerometer implementation for ST LSM303DLHC device.
 - EX:  Added gyroscope implementation for ST L3GD20 device.
@@ -123,6 +126,15 @@
 - RT:  Merged RT4.
 - NIL: Merged NIL2.
 - NIL: Added STM32F7 demo.
+- HAL: Fixed invalid output initialization for STM32 DACx channels 2
+       (bug #773)(backported to 16.1.6).
+- HAL: Fixed CAN inclusion path missing for STM32F107 (bug #772)(backported
+       to 16.1.6).
+- HAL: Fixed extra brackets in STM32F0 registry (bug #771)(backported
+       to 16.1.6).
+- HAL: Fixed STM32 CAN filters initialization problem (bug #770)(backported
+       to 16.1.6, 3.0.6, 2.6.10).
+- HAL: Fixed wrong bit mask in STM32L0xx port (bug #769)(backported to 16.1.6).
 - HAL: Fixed potential wait states problem in STM32L4 initialization code
        (bug #768)(backported to 16.1.6).
 - HAL: Fixed SDIO driver not compiling on STM32F446 devices (bug #767)

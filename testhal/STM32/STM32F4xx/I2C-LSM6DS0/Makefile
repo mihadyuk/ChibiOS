@@ -92,18 +92,18 @@ include $(CHIBIOS)/os/common/startup/ARMCMx/compilers/GCC/mk/startup_stm32f4xx.m
 # HAL-OSAL files (optional).
 include $(CHIBIOS)/os/hal/hal.mk
 include $(CHIBIOS)/os/hal/ports/STM32/STM32F4xx/platform.mk
-include $(CHIBIOS)/os/hal/boards/ST_STM32F401C_DISCOVERY/board.mk
+include $(CHIBIOS)/os/hal/boards/ST_NUCLEO64_F401RE/board.mk
 include $(CHIBIOS)/os/hal/osal/rt/osal.mk
 # RTOS files (optional).
 include $(CHIBIOS)/os/rt/rt.mk
 include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk
 # Other files (optional).
-include $(CHIBIOS)/os/ex/ST/lsm303dlhc.mk
+include $(CHIBIOS)/os/ex/ST/lsm6ds0.mk
 include $(CHIBIOS)/os/hal/lib/streams/streams.mk
 include $(CHIBIOS)/os/various/shell/shell.mk
 
 # Define linker script file here
-LDSCRIPT= $(STARTUPLD)/STM32F401xC.ld
+LDSCRIPT= $(STARTUPLD)/STM32F401xE.ld
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -114,10 +114,10 @@ CSRC = $(STARTUPSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
-	   $(LSM303DLHCSRC) \
+       $(LSM6DS0SRC) \
        $(STREAMSSRC) \
        $(SHELLSRC) \
-       usbcfg.c main.c
+       main.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -149,7 +149,7 @@ ASMXSRC = $(STARTUPASM) $(PORTASM) $(OSALASM)
 
 INCDIR = $(CHIBIOS)/os/license \
          $(STARTUPINC) $(KERNINC) $(PORTINC) $(OSALINC) \
-         $(HALINC) $(PLATFORMINC) $(BOARDINC) $(LSM303DLHCINC) \
+         $(HALINC) $(PLATFORMINC) $(BOARDINC) $(LSM6DS0INC) \
          $(STREAMSINC) $(SHELLINC)
 
 #
@@ -201,8 +201,9 @@ CPPWARN = -Wall -Wextra -Wundef
 
 # List all user C define here, like -D_DEBUG=1
 UDEFS = -DCHPRINTF_USE_FLOAT=1 -DSHELL_CMD_TEST_ENABLED=0 \
-        -DLSM303DLHC_ACC_USE_ADVANCED=0 -DLSM303DLHC_COMP_USE_ADVANCED=0
-
+        -DLSM6DS0_USE_ADVANCED=0 -DLSM6DS0_GYRO_USE_ADVANCED=0 \
+        -DLSM6DS0_ACC_USE_ADVANCED=0
+        
 # Define ASM defines here
 UADEFS =
 

@@ -1,15 +1,16 @@
 *****************************************************************************
-** ChibiOS/HAL + ChibiOS/EX - I2C + LSM6DS0 demo for STM32L4xx.            **
+** ChibiOS/HAL + ChibiOS/EX - I2C + LIS3MDL demo for STM32L4xx.            **
 *****************************************************************************
 
 ** TARGET **
 
-The demo runs on an STM32 Nucleo64-L476RG board. It has been tested with the X-NUCLEO-IKS01A1 shield.
+The demo runs on an STM32 Nucleo64-F401RE board. It has been tested with the 
+X-NUCLEO-IKS01A1 shield.
 
 ** The Demo **
 
-The application demonstrates the use of the STM32L4xx I2C driver in order
-to acquire data from LSM6DS0 using ChibiOS/EX.
+The application demonstrates the use of the STM32F4xx I2C driver in order
+to acquire data from LIS3MDL using ChibiOS/EX.
 
 ** Board Setup **
 

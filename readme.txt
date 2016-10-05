@@ -74,7 +74,18 @@
 *****************************************************************************
 
 *** 3.0.6 ***
+- HAL: Fixed STM32F105 port not compiling. (bug #782).
+- HAL: Fixed wrong registry for STM32F205xx and STM32F215xx port 
+       (bug #780).
+- HAL: Fixed wrong HSE checks and PLL2 enable switch in STM32F105 and
+       STM32F107 port (bug #779).
+- HAL: Added DAC configs in RT-STM32F051-DISCOVERY\mcuconf.h (bug #777).
+- HAL: Fixed DAC driver not compiling on STM32F051 and some bitmasks related 
+        to DAC disabling (bug #776).
+- HAL: Fixed addition semicolon in cpp wrapper (bug #774).
 - HAL: Fixed function gpt_lld_polled_delay() is broken on STM32 (bug #775).
+- HAL: Fixed invalid output initialization for STM32 DACx channels 2 
+       (bug #773).
 - HAL: Fixed wrong check in win32 simulator serial driver (bug #765).
 - HAL: Fixed wrong info in readme of LWIP related demos (bug #755).
 - HAL: Fixed errors in documentation related to OTG peripheral switches 

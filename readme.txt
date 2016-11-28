@@ -86,6 +86,10 @@
 *****************************************************************************
 
 *** Next ***
+- HAL: Added CAN3 support to the STM32 CANv1 driver.
+- HAL: Added support for all existing STM32 Nucleo and Discovery boards.
+- HAL: Extended STM32F4xx port by adding STM32F412 support.
+- HAL: Extended STM32L4xx port by adding STM32L432 support.
 - HAL: Implemented better handling for number of endpoints on STM32 OTGv1
        driver, now it is a registry key.
 - VAR: Updated CMSIS file for STM32F1xx to 4.1.0.
@@ -114,6 +118,7 @@
 - HAL: Added QSPI driver model.
 - HAL: Added base sensor, base gyroscope, base accelerometer and base compass
        classes.
+- HAL: Updated all STM32 Nucleo board files.
 - VAR: Cortex-M VTOR initialization is now performed in startup files and
        no more in port initialization.
 - VAR: Changed GCC asm files extension from .s to .S because conventions.
@@ -130,8 +135,6 @@
 - HAL: Improvements to the I/O queues now timeouts are absolute for
        iqReadTimeout() and oqWriteTimeout() functions.
 - RT:  Added a NASA-OSAL API emulator over the RT kernel.
-- RT:  Added RT-STM32L476-DISCOVERY demo.
-- HAL: Added more STM32L4xx testhal demos.
 - HAL: Updated all STM32L476 mcuconf.h files.
 - ALL: Startup files relicensed under Apache 2.0.
 - ALL: Enhanced GCC .ld files with multiple flash regions and capability to
@@ -147,6 +150,11 @@
 - RT:  Merged RT4.
 - NIL: Merged NIL2.
 - NIL: Added STM32F7 demo.
+- HAL: Fixed double empty lines in HAL (bug #794)backported to 16.1.6, 
+       3.0.6, 2.6.10).
+- RT:  Fixed double empty lines in RT (bug #793)(backported to 16.1.6, 3.0.6).
+- HAL: Fixed wrong entries in STM32L4 registry (bug #792)(backported to 
+       16.1.6).
 - HAL: Fixed missing ARPE bit in CR1 initialization on STM32 GPT driver
        (bug #791)(backported to 16.1.6, 3.0.6).
 - HAL: Fixed wrong DMA definition for STM32F303x8 ADC (bug #790)(backported

@@ -86,6 +86,9 @@
 *****************************************************************************
 
 *** Next ***
+- HAL: Implemented separated virtual timers module under /os/hal/osal/lib,
+       it can be used by OSAL implementations where the underlying RTOS is
+       lacking a timeout feature or missing.
 - HAL: Added CAN3 support to the STM32 CANv1 driver.
 - HAL: Added support for all existing STM32 Nucleo and Discovery boards.
 - HAL: Extended STM32F4xx port by adding STM32F412 support.
@@ -150,6 +153,15 @@
 - RT:  Merged RT4.
 - NIL: Merged NIL2.
 - NIL: Added STM32F7 demo.
+- HAL: Fixed wrong initialization for DACD4 in STM32 port (bug #802)
+       (backported to 16.1.6).
+- HAL: Fixed tab instead of space in dac driver (bug #801)
+       (backported to 16.1.6).
+- HAL: Fixed missing GPT and DAC in STM32F07/​9x mcuconf (bug #800)
+       (backported to 16.1.6).
+- HAL: Fixed STM32 RTCv2 driver does not handle the DST bit (bug #799)
+       (backported to 16.1.6).
+- HAL: Fixed MAC driver broken on STM32F107 (bug #798)(backported to 16.1.6).
 - VAR: Fixed missing const qualifier in local shell commands array (bug #797)
        (backported to 16.1.6, 3.0.6, 2.6.10).
 - VAR: Fixed compilation error in cmsis_os.h (bug #796)(backported to 16.1.6,
@@ -177,7 +189,6 @@
        (backported to 16.1.6).
 - HAL: Fixed STM32F105 port not compiling (bug #782)
        (backported to 16.1.6, 3.0.6, 2.6.10).
-       (bug #780)(backported to 16.1.6, 3.0.6).
 - HAL: Fixed wrong registry for STM32F205xx and STM32F215xx port 
        (bug #780)(backported to 16.1.6, 3.0.6).
 - HAL: Fixed wrong HSE checks and PLL2 enable switch in STM32F105 and

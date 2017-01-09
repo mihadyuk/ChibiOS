@@ -153,6 +153,21 @@
 - RT:  Merged RT4.
 - NIL: Merged NIL2.
 - NIL: Added STM32F7 demo.
+- HAL: Fixed redefined TIM in STM32F030 registry (bug #809) 
+       (backported to 16.1.7).
+- HAL: Fixed clock init in STM32F0x port which doesn't take in account
+       PLL_XTPRE and PREDIV_0 are hard-wired (bug #808) 
+       (backported to 16.1.7).
+- HAL: Fixed wrong initialization in ADC lld v3 (bug #807)
+       (backported to 16.1.6).
+- HAL: Fixed wrong clock init in STM32F0 port ad added more error checks 
+       (bug #806)(backported to 16.1.6).
+- HAL: Fixed misplaced else in STM32F0 port (bug #805)
+       (backported to 16.1.6).
+- HAL: Fixed flash waiting state misconfiguration in STM32L4 port (bug #804)
+       (backported to 16.1.6).
+- HAL: Added CR field to DAC configuration in STM32 port (bug #803)
+       (backported to 16.1.6).
 - HAL: Fixed wrong initialization for DACD4 in STM32 port (bug #802)
        (backported to 16.1.6).
 - HAL: Fixed tab instead of space in dac driver (bug #801)

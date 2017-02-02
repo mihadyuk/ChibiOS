@@ -52,9 +52,11 @@
   |  |  +--dox/           - HAL documentation resources.
   |  |  +--include/       - HAL high level headers.
   |  |  +--lib/           - HAL libraries.
+  |  |  |  +--fallback/   - HAL fall back software drivers.
   |  |  |  +--peripherals/- HAL peripherals interfaces.
   |  |  |  +--streams/    - HAL streams.
   |  |  +--osal/          - HAL OSAL implementations.
+  |  |  |  +--lib/        - HAL OSAL common modules.
   |  |  +--src/           - HAL high level source.
   |  |  +--ports/         - HAL ports.
   |  |  +--templates/     - HAL driver template files.
@@ -86,6 +88,8 @@
 *****************************************************************************
 
 *** Next ***
+- HAL: Added support for STM32F3 Discovery REV-C or higher.
+- EXT: Integrated latest FatFS 0.12b.
 - HAL: Implemented separated virtual timers module under /os/hal/osal/lib,
        it can be used by OSAL implementations where the underlying RTOS is
        lacking a timeout feature or missing.
@@ -153,6 +157,12 @@
 - RT:  Merged RT4.
 - NIL: Merged NIL2.
 - NIL: Added STM32F7 demo.
+- HAL: Fixed STM32 OTGv1 driver not serving interrupts for endpoints > 5
+       (bug #816)(backported to 16.1.8).
+- HAL: Fixed STM32 MAC driver needs __DSB() for STM32F7 when operating in
+       SRAM1/2 (bug #815)(backported to 16.1.8).
+- VAR: Fixed BYTE_ORDER redefined in lwip_bindings/arch/cc.h (bug #814)
+       (backported to 16.1.7).
 - HAL: Fixed setting alternate mode in STM32 GPIOv3 and GPIOv3 drivers can fail
        (bug #813)(backported to 16.1.7).
 - HAL: Fixed incorrect handling of shared ISRs in STM32 DMAv1 driver

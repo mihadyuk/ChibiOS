@@ -186,7 +186,7 @@ static bool sdc_lld_prepare_read(SDCDriver *sdcp, uint32_t startblk,
                                    startblk, resp) || MMCSD_R1_ERROR(resp[0]))
       return HAL_FAILED;
   }
-  else{
+  else {
     /* Send read single block command.*/
     if (sdc_lld_send_cmd_short_crc(sdcp, MMCSD_CMD_READ_SINGLE_BLOCK,
                                    startblk, resp) || MMCSD_R1_ERROR(resp[0]))
@@ -224,7 +224,7 @@ static bool sdc_lld_prepare_write(SDCDriver *sdcp, uint32_t startblk,
                                    startblk, resp) || MMCSD_R1_ERROR(resp[0]))
       return HAL_FAILED;
   }
-  else{
+  else {
     /* Write single block command.*/
     if (sdc_lld_send_cmd_short_crc(sdcp, MMCSD_CMD_WRITE_BLOCK,
                                    startblk, resp) || MMCSD_R1_ERROR(resp[0]))
@@ -543,14 +543,30 @@ void sdc_lld_set_data_clk(SDCDriver *sdcp, sdcbusclk_t clk) {
 #if 0
   if (SDC_CLK_50MHz == clk) {
     sdcp->sdmmc->CLKCR = (sdcp->sdmmc->CLKCR & 0xFFFFFF00U) |
+#if STM32_SDC_SDMMC_PWRSAV
+                         SDMMC_CLKDIV_HS | SDMMC_CLKCR_BYPASS |
+                         SDMMC_CLKCR_PWRSAV;
+#else
                          SDMMC_CLKDIV_HS | SDMMC_CLKCR_BYPASS;
+#endif
   }
-  else
+  else {
+#if STM32_SDC_SDMMC_PWRSAV
+    sdcp->sdmmc->CLKCR = (sdcp->sdmmc->CLKCR & 0xFFFFFF00U) | SDMMC_CLKDIV_HS |
+                         SDMMC_CLKCR_PWRSAV;
+#else
     sdcp->sdmmc->CLKCR = (sdcp->sdmmc->CLKCR & 0xFFFFFF00U) | SDMMC_CLKDIV_HS;
+#endif
+  }
 #else
   (void)clk;
 
+#if STM32_SDC_SDMMC_PWRSAV
+  sdcp->sdmmc->CLKCR = (sdcp->sdmmc->CLKCR & 0xFFFFFF00U) | SDMMC_CLKDIV_HS |
+                       SDMMC_CLKCR_PWRSAV;
+#else
   sdcp->sdmmc->CLKCR = (sdcp->sdmmc->CLKCR & 0xFFFFFF00U) | SDMMC_CLKDIV_HS;
+#endif
 #endif
 }
 
@@ -568,7 +584,7 @@ void sdc_lld_stop_clk(SDCDriver *sdcp) {
 }
 
 /**
- * @brief   Switches the bus to 4 bits mode.
+ * @brief   Switches the bus to 1, 4 or 8 bits mode.
  *
  * @param[in] sdcp      pointer to the @p SDCDriver object
  * @param[in] mode      bus mode
@@ -735,7 +751,7 @@ bool sdc_lld_read_special(SDCDriver *sdcp, uint8_t *buf, size_t bytes,
                           uint8_t cmd, uint32_t arg) {
   uint32_t resp[1];
 
-  if(sdc_lld_prepare_read_bytes(sdcp, buf, bytes))
+  if (sdc_lld_prepare_read_bytes(sdcp, buf, bytes))
     goto error;
 
   if (sdc_lld_send_cmd_short_crc(sdcp, cmd, arg, resp)

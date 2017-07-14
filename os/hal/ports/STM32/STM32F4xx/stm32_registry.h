@@ -425,7 +425,7 @@
 #define STM32_HAS_OTG1                      TRUE
 #define STM32_OTG1_ENDPOINTS                5
 #define STM32_HAS_OTG2                      TRUE
-#define STM32_OTG2_ENDPOINTS                8
+#define STM32_OTG2_ENDPOINTS                7
 
 #define STM32_HAS_USB                       FALSE
 
@@ -595,8 +595,8 @@
 
 /* QUADSPI attributes.*/
 #define STM32_HAS_QUADSPI1                  TRUE
-#define STM32_QUADSPI1_HANDLER              Vector1AC
-#define STM32_QUADSPI1_NUMBER               91
+#define STM32_QUADSPI1_HANDLER              Vector1B0
+#define STM32_QUADSPI1_NUMBER               92
 #define STM32_QUADSPI1_DMA_MSK              STM32_DMA_STREAM_ID_MSK(2, 7)
 #define STM32_QUADSPI1_DMA_CHN              0x30000000
 
@@ -769,9 +769,9 @@
 /* USB attributes.*/
 #define STM32_OTG_STEPPING                  2
 #define STM32_HAS_OTG1                      TRUE
-#define STM32_OTG1_ENDPOINTS                6
+#define STM32_OTG1_ENDPOINTS                5
 #define STM32_HAS_OTG2                      TRUE
-#define STM32_OTG2_ENDPOINTS                8
+#define STM32_OTG2_ENDPOINTS                7
 
 #define STM32_HAS_USB                       FALSE
 
@@ -1342,7 +1342,7 @@
 #define STM32_HAS_SPI4                      TRUE
 #define STM32_SPI4_SUPPORTS_I2S             FALSE
 #define STM32_SPI4_RX_DMA_MSK               (STM32_DMA_STREAM_ID_MSK(2, 0) |\
-                                             STM32_DMA_STREAM_ID_MSK(2, 3))|\
+                                             STM32_DMA_STREAM_ID_MSK(2, 3) |\
                                              STM32_DMA_STREAM_ID_MSK(2, 4))
 #define STM32_SPI4_RX_DMA_CHN               0x00045004
 #define STM32_SPI4_TX_DMA_MSK               (STM32_DMA_STREAM_ID_MSK(2, 1) |\
@@ -1355,7 +1355,7 @@
                                              STM32_DMA_STREAM_ID_MSK(2, 5))
 #define STM32_SPI5_RX_DMA_CHN               0x00702000
 #define STM32_SPI5_TX_DMA_MSK               (STM32_DMA_STREAM_ID_MSK(2, 4) |\
-                                             STM32_DMA_STREAM_ID_MSK(2, 5))|\
+                                             STM32_DMA_STREAM_ID_MSK(2, 5) |\
                                              STM32_DMA_STREAM_ID_MSK(2, 6))
 #define STM32_SPI5_TX_DMA_CHN               0x07520000
 
@@ -1462,9 +1462,9 @@
 #define STM32_HAS_LPUART1                   FALSE
 
 /* USB attributes.*/
-#define STM32_OTG_STEPPING                  1
+#define STM32_OTG_STEPPING                  2
 #define STM32_HAS_OTG1                      TRUE
-#define STM32_OTG1_ENDPOINTS                4
+#define STM32_OTG1_ENDPOINTS                3
 
 #define STM32_HAS_OTG2                      FALSE
 #define STM32_HAS_USB                       FALSE
@@ -1605,10 +1605,12 @@
 #define STM32_I2C2_TX_DMA_CHN               0x70000000
 
 #define STM32_HAS_I2C3                      TRUE
-#define STM32_I2C3_RX_DMA_MSK               STM32_DMA_STREAM_ID_MSK(1, 2)
-#define STM32_I2C3_RX_DMA_CHN               0x00000300
-#define STM32_I2C3_TX_DMA_MSK               STM32_DMA_STREAM_ID_MSK(1, 4)
-#define STM32_I2C3_TX_DMA_CHN               0x00030000
+#define STM32_I2C3_RX_DMA_MSK               (STM32_DMA_STREAM_ID_MSK(1, 1) |\
++                                            STM32_DMA_STREAM_ID_MSK(1, 2))
+#define STM32_I2C3_RX_DMA_CHN               0x00000310
+#define STM32_I2C3_TX_DMA_MSK               (STM32_DMA_STREAM_ID_MSK(1, 4) |\
++                                            STM32_DMA_STREAM_ID_MSK(1, 5))
+#define STM32_I2C3_TX_DMA_CHN               0x00630000
 
 #define STM32_HAS_I2C4                      FALSE
 
@@ -1759,7 +1761,7 @@
 /* USB attributes.*/
 #define STM32_OTG_STEPPING                  1
 #define STM32_HAS_OTG1                      TRUE
-#define STM32_OTG1_ENDPOINTS                4
+#define STM32_OTG1_ENDPOINTS                3
 
 #define STM32_HAS_OTG2                      FALSE
 #define STM32_HAS_USB                       FALSE
@@ -2665,7 +2667,7 @@
 /* USB attributes.*/
 #define STM32_OTG_STEPPING                  1
 #define STM32_HAS_OTG1                      TRUE
-#define STM32_OTG1_ENDPOINTS                4
+#define STM32_OTG1_ENDPOINTS                3
 #define STM32_HAS_OTG2                      FALSE
 
 #define STM32_HAS_USB                       FALSE

@@ -419,7 +419,7 @@ static void otg_epout_handler(USBDriver *usbp, usbep_t ep) {
     USBOutEndpointState *osp;
 
     /* Receive transfer complete, checking if it is a SETUP transfer on EP0,
-       that it must be ignored, the STUPM handler will take care of it.*/
+       than it must be ignored, the STUPM handler will take care of it.*/
     if ((ep == 0) && (usbp->ep0state == USB_EP0_WAITING_SETUP))
       return;
 
@@ -427,10 +427,11 @@ static void otg_epout_handler(USBDriver *usbp, usbep_t ep) {
     osp = usbp->epc[ep]->out_state;
 
     /* A short packet always terminates a transaction.*/
-    if (((osp->rxcnt % usbp->epc[ep]->out_maxsize) == 0) &&
+    if ((ep == 0) &&
+        ((osp->rxcnt % usbp->epc[ep]->out_maxsize) == 0) &&
         (osp->rxsize < osp->totsize)) {
-      /* In case the transaction covered only part of the total transfer
-         then another transaction is immediately started in order to
+      /* For EP 0 only, in case the transaction covered only part of the total
+         transfer then another transaction is immediately started in order to
          cover the remaining.*/
       osp->rxsize = osp->totsize - osp->rxsize;
       osp->rxcnt  = 0;
@@ -600,36 +601,6 @@ static void usb_lld_serve_interrupt(USBDriver *usbp) {
 
   /* IN/OUT endpoints event handling.*/
   src = otgp->DAINT;
-  if (sts & GINTSTS_IEPINT) {
-    if (src & (1 << 0))
-      otg_epin_handler(usbp, 0);
-    if (src & (1 << 1))
-      otg_epin_handler(usbp, 1);
-    if (src & (1 << 2))
-      otg_epin_handler(usbp, 2);
-    if (src & (1 << 3))
-      otg_epin_handler(usbp, 3);
-#if USB_MAX_ENDPOINTS >= 4
-    if (src & (1 << 4))
-      otg_epin_handler(usbp, 4);
-#endif
-#if USB_MAX_ENDPOINTS >= 5
-    if (src & (1 << 5))
-      otg_epin_handler(usbp, 5);
-#endif
-#if USB_MAX_ENDPOINTS >= 6
-    if (src & (1 << 6))
-      otg_epin_handler(usbp, 6);
-#endif
-#if USB_MAX_ENDPOINTS >= 7
-    if (src & (1 << 7))
-      otg_epin_handler(usbp, 7);
-#endif
-#if USB_MAX_ENDPOINTS >= 8
-    if (src & (1 << 8))
-      otg_epin_handler(usbp, 8);
-#endif
-  }
   if (sts & GINTSTS_OEPINT) {
     if (src & (1 << 16))
       otg_epout_handler(usbp, 0);
@@ -658,6 +629,36 @@ static void usb_lld_serve_interrupt(USBDriver *usbp) {
 #if USB_MAX_ENDPOINTS >= 8
     if (src & (1 << 24))
       otg_epout_handler(usbp, 8);
+#endif
+  }
+  if (sts & GINTSTS_IEPINT) {
+    if (src & (1 << 0))
+      otg_epin_handler(usbp, 0);
+    if (src & (1 << 1))
+      otg_epin_handler(usbp, 1);
+    if (src & (1 << 2))
+      otg_epin_handler(usbp, 2);
+    if (src & (1 << 3))
+      otg_epin_handler(usbp, 3);
+#if USB_MAX_ENDPOINTS >= 4
+    if (src & (1 << 4))
+      otg_epin_handler(usbp, 4);
+#endif
+#if USB_MAX_ENDPOINTS >= 5
+    if (src & (1 << 5))
+      otg_epin_handler(usbp, 5);
+#endif
+#if USB_MAX_ENDPOINTS >= 6
+    if (src & (1 << 6))
+      otg_epin_handler(usbp, 6);
+#endif
+#if USB_MAX_ENDPOINTS >= 7
+    if (src & (1 << 7))
+      otg_epin_handler(usbp, 7);
+#endif
+#if USB_MAX_ENDPOINTS >= 8
+    if (src & (1 << 8))
+      otg_epin_handler(usbp, 8);
 #endif
   }
 }

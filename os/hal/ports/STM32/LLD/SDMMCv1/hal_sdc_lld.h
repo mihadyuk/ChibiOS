@@ -87,6 +87,13 @@
 #endif
 
 /**
+ * @brief   Card clock power saving enable.
+ */
+#if !defined(STM32_SDC_SDMMC_PWRSAV) || defined(__DOXYGEN__)
+#define STM32_SDC_SDMMC_PWRSAV              TRUE
+#endif
+
+/**
  * @brief   SDMMC1 DMA priority (0..3|lowest..highest).
  */
 #if !defined(STM32_SDC_SDMMC1_DMA_PRIORITY) || defined(__DOXYGEN__)

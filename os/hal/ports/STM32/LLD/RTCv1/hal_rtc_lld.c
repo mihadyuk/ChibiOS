@@ -137,7 +137,7 @@ static void rtc_decode(uint32_t tv_sec,
   t = localtime_r((time_t *)&(tv_sec), &tim);
   osalDbgAssert(t != NULL, "conversion failed");
 #else
-  struct tm *t = localtime(&tv_sec);
+  t = localtime(&tv_sec);
   memcpy(&tim, t, sizeof(struct tm));
 #endif
 
@@ -398,6 +398,9 @@ void rtcSTM32GetSecMsec(RTCDriver *rtcp, uint32_t *tv_sec, uint32_t *tv_msec) {
 
   /* Required because access to CNT and DIV.*/
   rtc_apb1_sync();
+
+  /* wait for previous write accesses to complete.*/
+  rtc_wait_write_completed();
 
   /* Loops until two consecutive read returning the same value.*/
   do {

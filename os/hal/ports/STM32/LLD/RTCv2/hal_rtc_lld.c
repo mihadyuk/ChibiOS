@@ -345,9 +345,10 @@ void rtc_lld_set_time(RTCDriver *rtcp, const RTCDateTime *timespec) {
 
   /* Writing the registers.*/
   rtc_enter_init();
-  rtcp->rtc->TR  = tr;
-  rtcp->rtc->DR  = dr;
-  rtcp->rtc->CR |= timespec->dstflag << RTC_CR_BKP_OFFSET;
+  rtcp->rtc->TR = tr;
+  rtcp->rtc->DR = dr;
+  rtcp->rtc->CR = (rtcp->rtc->CR & ~(1U << RTC_CR_BKP_OFFSET)) |
+                  (timespec->dstflag << RTC_CR_BKP_OFFSET);
   rtc_exit_init();
 
   /* Leaving a reentrant critical zone.*/
@@ -509,16 +510,18 @@ void rtcSTM32SetPeriodicWakeup(RTCDriver *rtcp, const RTCWakeup *wakeupspec) {
     osalDbgCheck(wakeupspec->wutr != 0x30000);
 
     rtcp->rtc->CR &= ~RTC_CR_WUTE;
+    rtcp->rtc->CR &= ~RTC_CR_WUTIE;
     while (!(rtcp->rtc->ISR & RTC_ISR_WUTWF))
       ;
     rtcp->rtc->WUTR = wakeupspec->wutr & 0xFFFF;
-    rtcp->rtc->CR   = (wakeupspec->wutr >> 16) & 0x7;
+    rtcp->rtc->CR &= ~RTC_CR_WUCKSEL;
+    rtcp->rtc->CR |= (wakeupspec->wutr >> 16) & RTC_CR_WUCKSEL;
     rtcp->rtc->CR |= RTC_CR_WUTIE;
     rtcp->rtc->CR |= RTC_CR_WUTE;
   }
   else {
-    rtcp->rtc->CR &= ~RTC_CR_WUTIE;
     rtcp->rtc->CR &= ~RTC_CR_WUTE;
+    rtcp->rtc->CR &= ~RTC_CR_WUTIE;
   }
 
   /* Leaving a reentrant critical zone.*/

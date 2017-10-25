@@ -89,6 +89,115 @@
 *****************************************************************************
 
 *** Next ***
+- NEW: Added an "Objects FIFO" object to the OS Library, it allows to
+       exchange complex objects between threads/ISRs. It is based on a
+       mailbox and a guarded memory pool.
+- NEW: Added an "Objects Factory" to the OS Library, it allows to dynamically
+       allocate reference-counted kernel objects/buffers or to register
+       static objects. Allocated/registered objects can be retrieved by name.
+- NEW: The OS Library now has its own test suite.
+- NEW: Updated STM32F1xx headers to 1.6, STM32F3xx to 1.9, STM32L0xx to 1.10,
+       STM32L4xx to 1.9, STM32H7xx to 1.1.
+- NEW: Updated CMSIS to 5.1.1, changed directories organization under
+       /os/ext/ARM/CMSIS to match the one in CMSIS, removed /os/ext/CMSIS.
+- NEW: Integrated lwIP 2.0.3 and improved lwIP bindings.
+- NEW: The chconf.h configuration files now are tagged with the version
+       number for safety. The system rejects obsolete files during
+       compilation.
+- NEW: Added alignment capability to memory pools.
+- NEW: Mailbox API changed by adding "Timeout" to those function that have
+       timeout capability, for consistency with the rest of the system.
+- NEW: Modified mailboxes to use a size_t as counter instead of a cnt_t,
+       this is a leftover of semaphores in previous mailboxes implementation.
+- NEW: Added a new functions to RT events chEvtGetAndClearEventsI() and
+       chEvtAddEventsI().
+- NEW: Integrated the latest FatFS 0.13 with patches.
+- NEW: Improved RT and NIL test suite to report version numbers and
+       configuration settings. Now it is possible to run multiple test suites
+       in the same application.
+- NEW: Added a test suite generator tool written in FTL.
+- NEW: Added a multi-target demo applications for PAL, SPI and USB-CDC
+       showcasing how to manage a project with multiple target boards/devices
+       and handle portability issues.
+- NEW: Added to the HAL USB driver a new function usbWakeupHost() for
+       standby exit.
+- NEW: SPI driver improvements, now it is possible to select different
+       modes for CS line handling.
+- NEW: Implemented PAL enhancements on all existing STM32 ports.
+- NEW: PAL driver enhanced with improved callbacks capability and new
+       synchronous API for edge synchronization.
+- NEW: Added to the serial driver and channels interface a new "control"
+       function that allows to implement extensions in the LLD without
+       touching the high level interface. Conceptually it is similar
+       to Posix ioctl().
+- NEW: Added an argument to PAL events callback. API changed thus this
+       causes a major number change in HAL.
+- NEW: Added shared Eclipse debug configurations for OpenOCD under
+       ./tools/eclipse/debug. Now it is no more required to re-create
+       those each time a new workspace is created, just import the global
+       ChibiOS project in it. The configurations will appear under the
+       Eclipse Tools menu. It is required to create an OPENOCD environment
+       variable pointing to the OpenOCD executable. It will be done in
+       ChibiStudio 20 by default.
+- NEW: Improved the various rules.mk to handle "touching" of all
+       included makefiles, now the makefile is no more assumed to
+       be called "Makefile".
+- NEW: Added to the Makefiles the ability to change the default build,
+       dependencies and configuration directories. This makes possible
+       to have multiple non-conflicting makefiles in the same project.
+       Updated the various platform.mk implementing "smart build" mode.
+- LIB: Fixed call protocol violation in chCoreAlloc() (bug #896)(backported
+       to 17.6.3).
+- RT:  Fixed trace Buffer activation bits state reversed in chconf.h
+       (bug #895)(backported to 17.6.3).
+- BLD: Fixed USE_OPT not passed to assembler in rules.mk (bug #892)(backported
+       to 17.6.3 and 16.1.10).
+- HAL: Fixed IRQ sharing issue in STM32 DMAv1 driver (bug #891)(backported
+       to 17.6.3 and 16.1.10).
+- HAL: Fixed various STM32 registry problems (bug #889)(backported to 17.6.2
+       and 16.1.10).
+- LIB: Fixed heap allocator returning unaligned blocks (bug #888)(backported
+       to 17.6.2).
+- NIL: Fixed duplicated entries in NIL documentation (bug #887)(backported
+       to 17.6.1).
+- HAL: Fixed USB GET_DESCRIPTOR not handled for Interface Recipients (bug #885)
+       (backported to 17.6.1 and 16.1.9).
+- RT:  MAILBOX_DECL size parameter is actually a count (bug #884)
+       (backported to 17.6.1 and 16.1.9).
+- HAL: Fixed error in uartReceiveTimeout() and uartSendTimeout() (bug #883)
+       (backported to 17.6.1 and 16.1.9).
+- HAL: Fixed TIMx DBL field macro broken (bug #880)(backported
+       to 17.6.1 and 16.1.9).
+- HAL: Fixed STM32 SPI problem in spi_lld_start() (bug #879)(backported
+       to 17.6.1 and 16.1.9).
+- HAL: Fixed invalid STM32 CAN3 filters initialization (bug #878)
+       (backported to 17.6.1).
+- HAL: Fixed missing CAN definitions in STM32L432 registry entry (bug #877)
+       (backported to 17.6.1).
+- HAL: Fixed missing STM32_TIM_MAX_CHANNELS definition in STM32L0 registry
+       (bug #876)(backported to 17.6.1 and 16.1.9).
+- HAL: Fixed STM32 OTGv1 driver fails on STM32L4 (bug #875)
+       (backported to 17.6.1 and 16.1.9).
+- HAL: Fixed wrong I2S and SAI freq divisor (bug #874)
+       (backported to 17.6.1).
+- HAL: Fixed wrong SAI1 and SAI2 clock selection (bug #873)
+       (backported to 17.6.1).
+- HAL: Fixed invalid number of DMA channels on STM32L011 (bug #872)
+       (backported to 17.6.1).
+- HAL: Fixed STM32 USARTv2 serial incorrect buffer size declarations
+       (bug #871)(backported to 17.6.1).
+- HAL: Fixed bug in STM32L0xx port related to STM32L0x1 (bug #870)
+       (backported to 17.6.1).
+- HAL: Fixed board file configuration for STM32F3 Discovery REVC (bug #869)
+       (backported to 17.6.1).
+- HAL: Fixed wrong PPRE2 and LSI related macros in STM32L0 hal lld (bug #868)
+       (backported to 17.6.1 and 16.1.9).
+- HAL: Fixed wrong bit mask in STM32L0 hal lld (bug #866)(backported to
+       17.6.1 and 16.1.9).
+- RT:  Fixed misplaced assertion in semaphores code (bug #865)(backported to
+       17.6.1 and 16.1.9).
+- RT:  Fixed event cast cleanup for compilation warnings (bug #864)(backported
+       to 17.6.1 and 16.1.9).
 - HAL: Fixed STM32 USBv1 fails the state check when USB_USE_WAIT is TRUE
        (bug #863)(backported to 17.6.1 and 16.1.9).
 - HAL: Fixed incorrect OTG stepping in STM32F412 registry (bug #861)

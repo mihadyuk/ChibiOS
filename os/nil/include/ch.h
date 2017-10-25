@@ -55,12 +55,12 @@
 /**
  * @brief   Kernel version string.
  */
-#define CH_KERNEL_VERSION       "2.0.0"
+#define CH_KERNEL_VERSION       "3.0.0"
 
 /**
  * @brief   Kernel version major number.
  */
-#define CH_KERNEL_MAJOR         2
+#define CH_KERNEL_MAJOR         3
 
 /**
  * @brief   Kernel version minor number.
@@ -94,13 +94,23 @@
  * @note    Not all functions accept @p TIME_IMMEDIATE as timeout parameter,
  *          see the specific function documentation.
  */
-#define TIME_IMMEDIATE          ((systime_t)-1)
+#define TIME_IMMEDIATE          ((sysinterval_t)-1)
 
 /**
  * @brief   Infinite time specification for all functions with a timeout
  *          specification.
  */
-#define TIME_INFINITE           ((systime_t)0)
+#define TIME_INFINITE           ((sysinterval_t)0)
+
+/**
+ * @brief   Maximum interval constant usable as timeout.
+ */
+#define TIME_MAX_INTERVAL       ((sysinterval_t)-2)
+
+/**
+ * @brief   Maximum system of system time before it wraps.
+ */
+#define TIME_MAX_SYSTIME        ((systime_t)-1)
 /** @} */
 
 /**
@@ -139,7 +149,7 @@
 /* Module pre-compile time settings.                                         */
 /*===========================================================================*/
 
-/**
+/*-*
  * @brief   Number of user threads in the application.
  * @note    This number is not inclusive of the idle thread which is
  *          implicitly handled.
@@ -148,7 +158,7 @@
 #define CH_CFG_NUM_THREADS                  2
 #endif
 
-/**
+/*-*
  * @brief   System time counter resolution.
  * @note    Allowed values are 16 or 32 bits.
  */
@@ -156,7 +166,7 @@
 #define CH_CFG_ST_RESOLUTION                32
 #endif
 
-/**
+/*-*
  * @brief   System tick frequency.
  * @note    This value together with the @p CH_CFG_ST_RESOLUTION
  *          option defines the maximum amount of time allowed for
@@ -166,7 +176,7 @@
 #define CH_CFG_ST_FREQUENCY                 100
 #endif
 
-/**
+/*-*
  * @brief   Time delta constant for the tick-less mode.
  * @note    If this value is zero then the system uses the classic
  *          periodic tick. This value represents the minimum number
@@ -178,7 +188,7 @@
 #define CH_CFG_ST_TIMEDELTA                 0
 #endif
 
-/**
+/*-*
  * @brief   Semaphores APIs.
  * @details If enabled then the Semaphores APIs are included in the kernel.
  *
@@ -188,7 +198,7 @@
 #define CH_CFG_USE_SEMAPHORES               TRUE
 #endif
 
-/**
+/*-*
  * @brief   Mutexes APIs.
  * @details If enabled then the mutexes APIs are included in the kernel.
  *
@@ -199,7 +209,7 @@
 #define CH_CFG_USE_MUTEXES                  FALSE
 #endif
 
-/**
+/*-*
  * @brief   Events Flags APIs.
  * @details If enabled then the event flags APIs are included in the kernel.
  *
@@ -209,7 +219,7 @@
 #define CH_CFG_USE_EVENTS                   TRUE
 #endif
 
-/**
+/*-*
  * @brief   Mailboxes APIs.
  * @details If enabled then the asynchronous messages (mailboxes) APIs are
  *          included in the kernel.
@@ -221,7 +231,7 @@
 #define CH_CFG_USE_MAILBOXES                TRUE
 #endif
 
-/**
+/*-*
  * @brief   Core Memory Manager APIs.
  * @details If enabled then the core memory manager APIs are included
  *          in the kernel.
@@ -232,7 +242,7 @@
 #define CH_CFG_USE_MEMCORE                  TRUE
 #endif
 
-/**
+/*-*
  * @brief   Heap Allocator APIs.
  * @details If enabled then the memory heap allocator APIs are included
  *          in the kernel.
@@ -243,7 +253,7 @@
 #define CH_CFG_USE_HEAP                     TRUE
 #endif
 
-/**
+/*-*
  * @brief   Memory Pools Allocator APIs.
  * @details If enabled then the memory pools allocator APIs are included
  *          in the kernel.
@@ -254,7 +264,7 @@
 #define CH_CFG_USE_MEMPOOLS                 TRUE
 #endif
 
-/**
+/*-*
  * @brief   Debug option, kernel statistics.
  *
  * @note    Feature not currently implemented.
@@ -264,7 +274,7 @@
 #define CH_DBG_STATISTICS                   FALSE
 #endif
 
-/**
+/*-*
  * @brief   Debug option, system state check.
  * @note    This is a planned feature, not yet implemented.
  *
@@ -274,7 +284,7 @@
 #define CH_DBG_SYSTEM_STATE_CHECK           FALSE
 #endif
 
-/**
+/*-*
  * @brief   Debug option, parameters checks.
  *
  * @note    The default is @p FALSE.
@@ -283,7 +293,7 @@
 #define CH_DBG_ENABLE_CHECKS                FALSE
 #endif
 
-/**
+/*-*
  * @brief   System assertions.
  *
  * @note    The default is @p FALSE.
@@ -292,7 +302,7 @@
 #define CH_DBG_ENABLE_ASSERTS               FALSE
 #endif
 
-/**
+/*-*
  * @brief   Stack check.
  *
  * @note    The default is @p FALSE.
@@ -301,14 +311,14 @@
 #define CH_DBG_ENABLE_STACK_CHECK           FALSE
 #endif
 
-/**
+/*-*
  * @brief   System initialization hook.
  */
 #if !defined(CH_CFG_SYSTEM_INIT_HOOK) || defined(__DOXYGEN__)
 #define CH_CFG_SYSTEM_INIT_HOOK() {}
 #endif
 
-/**
+/*-*
  * @brief   Threads descriptor structure extension.
  * @details User fields added to the end of the @p thread_t structure.
  */
@@ -316,14 +326,14 @@
 #define CH_CFG_THREAD_EXT_FIELDS
 #endif
 
-/**
+/*-*
  * @brief   Threads initialization hook.
  */
 #if !defined(CH_CFG_THREAD_EXT_INIT_HOOK) || defined(__DOXYGEN__)
 #define CH_CFG_THREAD_EXT_INIT_HOOK(tr) {}
 #endif
 
-/**
+/*-*
  * @brief   Idle thread enter hook.
  * @note    This hook is invoked within a critical zone, no OS functions
  *          should be invoked from here.
@@ -333,7 +343,7 @@
 #define CH_CFG_IDLE_ENTER_HOOK() {}
 #endif
 
-/**
+/*-*
  * @brief   Idle thread leave hook.
  * @note    This hook is invoked within a critical zone, no OS functions
  *          should be invoked from here.
@@ -343,7 +353,7 @@
 #define CH_CFG_IDLE_LEAVE_HOOK() {}
 #endif
 
-/**
+/*-*
  * @brief   System halt hook.
  */
 #if !defined(CH_CFG_SYSTEM_HALT_HOOK) || defined(__DOXYGEN__)
@@ -457,13 +467,30 @@
 /* Module data structures and types.                                         */
 /*===========================================================================*/
 
+#if (CH_CFG_ST_RESOLUTION == 32) || defined(__DOXYGEN__)
 /**
  * @brief   Type of system time.
+ * @note    It is selectable in configuration between 16 or 32 bits.
  */
-#if (CH_CFG_ST_RESOLUTION == 32) || defined(__DOXYGEN__)
 typedef uint32_t systime_t;
+
+/**
+ * @brief   Type of time interval.
+ * @note    It is selectable in configuration between 16 or 32 bits.
+ */
+typedef uint32_t sysinterval_t;
+
+/**
+ * @brief   Type of time conversion variable.
+ * @note    This type must have double width than other time types, it is
+ *          only used internally for conversions.
+ */
+typedef uint64_t time_conv_t;
+
 #else
 typedef uint16_t systime_t;
+typedef uint16_t sysinterval_t;
+typedef uint32_t time_conv_t;
 #endif
 
 /**
@@ -541,7 +568,7 @@ struct nil_thread {
     eventmask_t         ewmask;     /**< @brief Enabled events mask.        */
 #endif
   } u1;
-  volatile systime_t    timeout;    /**< @brief Timeout counter, zero
+  volatile sysinterval_t timeout;   /**< @brief Timeout counter, zero
                                                 if disabled.                */
 #if (CH_CFG_USE_EVENTS == TRUE) || defined(__DOXYGEN__)
   eventmask_t           epmask;     /**< @brief Pending events mask.        */
@@ -827,91 +854,110 @@ struct nil_system {
  * @{
  */
 /**
- * @brief   Seconds to system ticks.
+ * @brief   Seconds to time interval.
  * @details Converts from seconds to system ticks number.
  * @note    The result is rounded upward to the next tick boundary.
+ * @note    Use of this macro for large values is not secure because
+ *          integer overflows, make sure your value can be correctly
+ *          converted.
  *
- * @param[in] sec       number of seconds
+ * @param[in] secs      number of seconds
  * @return              The number of ticks.
  *
  * @api
  */
-#define S2ST(sec)                                                           \
-  ((systime_t)((uint32_t)(sec) * (uint32_t)CH_CFG_ST_FREQUENCY))
+#define TIME_S2I(secs)                                                      \
+  ((sysinterval_t)((time_conv_t)(secs) * (time_conv_t)CH_CFG_ST_FREQUENCY))
 
 /**
- * @brief   Milliseconds to system ticks.
+ * @brief   Milliseconds to time interval.
  * @details Converts from milliseconds to system ticks number.
  * @note    The result is rounded upward to the next tick boundary.
+ * @note    Use of this macro for large values is not secure because
+ *          integer overflows, make sure your value can be correctly
+ *          converted.
  *
- * @param[in] msec      number of milliseconds
+ * @param[in] msecs     number of milliseconds
  * @return              The number of ticks.
  *
  * @api
  */
-#define MS2ST(msec)                                                         \
-  ((systime_t)(((((uint32_t)(msec)) *                                       \
-                 ((uint32_t)CH_CFG_ST_FREQUENCY)) + 999UL) / 1000UL))
+#define TIME_MS2I(msecs)                                                    \
+  ((sysinterval_t)((((time_conv_t)(msecs) *                                 \
+                     (time_conv_t)CH_CFG_ST_FREQUENCY) +                    \
+                    (time_conv_t)999) / (time_conv_t)1000))
 
 /**
- * @brief   Microseconds to system ticks.
+ * @brief   Microseconds to time interval.
  * @details Converts from microseconds to system ticks number.
  * @note    The result is rounded upward to the next tick boundary.
+ * @note    Use of this macro for large values is not secure because
+ *          integer overflows, make sure your value can be correctly
+ *          converted.
  *
- * @param[in] usec      number of microseconds
+ * @param[in] usecs      number of microseconds
  * @return              The number of ticks.
  *
  * @api
  */
-#define US2ST(usec)                                                         \
-  ((systime_t)(((((uint32_t)(usec)) *                                       \
-                 ((uint32_t)CH_CFG_ST_FREQUENCY)) + 999999UL) / 1000000UL))
-/** @} */
+#define TIME_US2I(usecs)                                                    \
+  ((sysinterval_t)((((time_conv_t)(usecs) *                                 \
+                     (time_conv_t)CH_CFG_ST_FREQUENCY) +                    \
+                    (time_conv_t)999999) / (time_conv_t)1000000))
 
 /**
- * @name    Time conversion utilities for the realtime counter
- * @{
- */
-/**
- * @brief   Seconds to realtime counter.
- * @details Converts from seconds to realtime counter cycles.
- * @note    The macro assumes that @p freq >= @p 1.
+ * @brief   Time interval to seconds.
+ * @details Converts from system ticks number to seconds.
+ * @note    The result is rounded up to the next second boundary.
+ * @note    Use of this macro for large values is not secure because
+ *          integer overflows, make sure your value can be correctly
+ *          converted.
  *
- * @param[in] freq      clock frequency, in Hz, of the realtime counter
- * @param[in] sec       number of seconds
- * @return              The number of cycles.
+ * @param[in] interval  interval in ticks
+ * @return              The number of seconds.
  *
  * @api
  */
-#define S2RTC(freq, sec) ((freq) * (sec))
+#define TIME_I2S(interval)                                                  \
+  (time_secs_t)(((time_conv_t)(interval) +                                  \
+                 (time_conv_t)CH_CFG_ST_FREQUENCY -                         \
+                 (time_conv_t)1) / (time_conv_t)CH_CFG_ST_FREQUENCY)
 
 /**
- * @brief   Milliseconds to realtime counter.
- * @details Converts from milliseconds to realtime counter cycles.
- * @note    The result is rounded upward to the next millisecond boundary.
- * @note    The macro assumes that @p freq >= @p 1000.
+ * @brief   Time interval to milliseconds.
+ * @details Converts from system ticks number to milliseconds.
+ * @note    The result is rounded up to the next millisecond boundary.
+ * @note    Use of this macro for large values is not secure because
+ *          integer overflows, make sure your value can be correctly
+ *          converted.
  *
- * @param[in] freq      clock frequency, in Hz, of the realtime counter
- * @param[in] msec      number of milliseconds
- * @return              The number of cycles.
+ * @param[in] interval  interval in ticks
+ * @return              The number of milliseconds.
  *
  * @api
  */
-#define MS2RTC(freq, msec) (rtcnt_t)((((freq) + 999UL) / 1000UL) * (msec))
+#define TIME_I2MS(interval)                                                 \
+  (time_msecs_t)((((time_conv_t)(interval) * (time_conv_t)1000) +           \
+                  (time_conv_t)CH_CFG_ST_FREQUENCY - (time_conv_t)1) /      \
+                 (time_conv_t)CH_CFG_ST_FREQUENCY)
 
 /**
- * @brief   Microseconds to realtime counter.
- * @details Converts from microseconds to realtime counter cycles.
- * @note    The result is rounded upward to the next microsecond boundary.
- * @note    The macro assumes that @p freq >= @p 1000000.
+ * @brief   Time interval to microseconds.
+ * @details Converts from system ticks number to microseconds.
+ * @note    The result is rounded up to the next microsecond boundary.
+ * @note    Use of this macro for large values is not secure because
+ *          integer overflows, make sure your value can be correctly
+ *          converted.
  *
- * @param[in] freq      clock frequency, in Hz, of the realtime counter
- * @param[in] usec      number of microseconds
- * @return              The number of cycles.
+ * @param[in] interval  interval in ticks
+ * @return              The number of microseconds.
  *
  * @api
  */
-#define US2RTC(freq, usec) (rtcnt_t)((((freq) + 999999UL) / 1000000UL) * (usec))
+#define TIME_I2US(interval)                                                 \
+    (time_msecs_t)((((time_conv_t)(interval) * (time_conv_t)1000000) +      \
+                    (time_conv_t)CH_CFG_ST_FREQUENCY - (time_conv_t)1) /    \
+                   (time_conv_t)CH_CFG_ST_FREQUENCY)
 /** @} */
 
 /**
@@ -1104,11 +1150,11 @@ struct nil_system {
  *          system clock.
  * @note    The maximum specified value is implementation dependent.
  *
- * @param[in] sec       time in seconds, must be different from zero
+ * @param[in] secs      time in seconds, must be different from zero
  *
  * @api
  */
-#define chThdSleepSeconds(sec) chThdSleep(S2ST(sec))
+#define chThdSleepSeconds(secs) chThdSleep(TIME_S2I(secs))
 
 /**
  * @brief   Delays the invoking thread for the specified number of
@@ -1117,11 +1163,11 @@ struct nil_system {
  *          system clock.
  * @note    The maximum specified value is implementation dependent.
  *
- * @param[in] msec      time in milliseconds, must be different from zero
+ * @param[in] msecs     time in milliseconds, must be different from zero
  *
  * @api
  */
-#define chThdSleepMilliseconds(msec) chThdSleep(MS2ST(msec))
+#define chThdSleepMilliseconds(msecs) chThdSleep(TIME_MS2I(msecs))
 
 /**
  * @brief   Delays the invoking thread for the specified number of
@@ -1130,11 +1176,11 @@ struct nil_system {
  *          system clock.
  * @note    The maximum specified value is implementation dependent.
  *
- * @param[in] usec      time in microseconds, must be different from zero
+ * @param[in] usecs     time in microseconds, must be different from zero
  *
  * @api
  */
-#define chThdSleepMicroseconds(usec) chThdSleep(US2ST(usec))
+#define chThdSleepMicroseconds(usecs) chThdSleep(TIME_US2I(usecs))
 
 /**
  * @brief   Suspends the invoking thread for the specified time.
@@ -1143,7 +1189,8 @@ struct nil_system {
  *
  * @sclass
  */
-#define chThdSleepS(timeout) (void) chSchGoSleepTimeoutS(NIL_STATE_SLEEPING, timeout)
+#define chThdSleepS(timeout)                                                \
+  (void) chSchGoSleepTimeoutS(NIL_STATE_SLEEPING, timeout)
 
 /**
  * @brief   Suspends the invoking thread until the system time arrives to the
@@ -1154,8 +1201,8 @@ struct nil_system {
  * @sclass
  */
 #define chThdSleepUntilS(abstime)                                           \
-    (void) chSchGoSleepTimeoutS(NIL_STATE_SLEEPING, (abstime) -             \
-                                chVTGetSystemTimeX())
+  (void) chSchGoSleepTimeoutS(NIL_STATE_SLEEPING,                           \
+                              chTimeDiffX(chVTGetSystemTimeX(), (abstime)))
 
 /**
  * @brief   Initializes a threads queue object.
@@ -1275,13 +1322,36 @@ struct nil_system {
  * @xclass
  */
 #define chVTTimeElapsedSinceX(start)                                        \
-  ((systime_t)(chVTGetSystemTimeX() - (start)))
+  chTimeDiffX((start), chVTGetSystemTimeX())
 
 /**
- * @brief   Checks if the specified time is within the specified time window.
+ * @brief   Adds an interval to a system time returning a system time.
+ *
+ * @param[in] systime   base system time
+ * @param[in] interval  interval to be added
+ * @return              The new system time.
+ *
+ * @xclass
+ */
+#define chTimeAddX(systime, interval)                                       \
+  ((systime_t)(systime) + (systime_t)(interval))
+
+/**
+ * @brief   Subtracts two system times returning an interval.
+ *
+ * @param[in] start     first system time
+ * @param[in] end       second system time
+ * @return              The interval representing the time difference.
+ *
+ * @xclass
+ */
+#define chTimeDiffX(start, end)                                             \
+  ((sysinterval_t)((systime_t)((systime_t)(end) - (systime_t)(start))))
+
+/**
+ * @brief   Checks if the specified time is within the specified time range.
  * @note    When start==end then the function returns always true because the
  *          whole time range is specified.
- * @note    This function can be called from any context.
  *
  * @param[in] time      the time to be verified
  * @param[in] start     the start of the time window (inclusive)
@@ -1291,8 +1361,9 @@ struct nil_system {
  *
  * @xclass
  */
-#define chVTIsTimeWithinX(time, start, end)                                 \
-  ((bool)((systime_t)((time) - (start)) < (systime_t)((end) - (start))))
+#define chTimeIsInRangeX(time, start, end)                                  \
+  ((bool)(((systime_t)(time) - (systime_t)(start)) <                        \
+          ((systime_t)(end) - (systime_t)(start))))
 
 /**
  * @brief   Function parameters check.
@@ -1388,18 +1459,18 @@ extern "C" {
   bool chSchIsPreemptionRequired(void);
   void chSchDoReschedule(void);
   void chSchRescheduleS(void);
-  msg_t chSchGoSleepTimeoutS(tstate_t newstate, systime_t timeout);
-  msg_t chThdSuspendTimeoutS(thread_reference_t *trp, systime_t timeout);
+  msg_t chSchGoSleepTimeoutS(tstate_t newstate, sysinterval_t timeout);
+  msg_t chThdSuspendTimeoutS(thread_reference_t *trp, sysinterval_t timeout);
   void chThdResumeI(thread_reference_t *trp, msg_t msg);
-  void chThdSleep(systime_t timeout);
+  void chThdSleep(sysinterval_t timeout);
   void chThdSleepUntil(systime_t abstime);
-  msg_t chThdEnqueueTimeoutS(threads_queue_t *tqp, systime_t timeout);
+  msg_t chThdEnqueueTimeoutS(threads_queue_t *tqp, sysinterval_t timeout);
   void chThdDoDequeueNextI(threads_queue_t *tqp, msg_t msg);
   void chThdDequeueNextI(threads_queue_t *tqp, msg_t msg);
   void chThdDequeueAllI(threads_queue_t *tqp, msg_t msg);
 #if CH_CFG_USE_SEMAPHORES == TRUE
-  msg_t chSemWaitTimeout(semaphore_t *sp, systime_t timeout);
-  msg_t chSemWaitTimeoutS(semaphore_t *sp, systime_t timeout);
+  msg_t chSemWaitTimeout(semaphore_t *sp, sysinterval_t timeout);
+  msg_t chSemWaitTimeoutS(semaphore_t *sp, sysinterval_t timeout);
   void chSemSignal(semaphore_t *sp);
   void chSemSignalI(semaphore_t *sp);
   void chSemReset(semaphore_t *sp, cnt_t n);
@@ -1408,7 +1479,7 @@ extern "C" {
 #if CH_CFG_USE_EVENTS == TRUE
   void chEvtSignal(thread_t *tp, eventmask_t mask);
   void chEvtSignalI(thread_t *tp, eventmask_t mask);
-  eventmask_t chEvtWaitAnyTimeout(eventmask_t mask, systime_t timeout);
+  eventmask_t chEvtWaitAnyTimeout(eventmask_t mask, sysinterval_t timeout);
 #endif
 #if CH_DBG_SYSTEM_STATE_CHECK == TRUE
   void _dbg_check_disable(void);

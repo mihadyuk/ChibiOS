@@ -48,12 +48,12 @@
 /**
  * @brief   Kernel version string.
  */
-#define CH_KERNEL_VERSION       "4.0.0"
+#define CH_KERNEL_VERSION       "5.0.0"
 
 /**
  * @brief   Kernel version major number.
  */
-#define CH_KERNEL_MAJOR         4
+#define CH_KERNEL_MAJOR         5
 
 /**
  * @brief   Kernel version minor number.
@@ -66,7 +66,7 @@
 #define CH_KERNEL_PATCH         0
 /** @} */
 
-/* Core headers.*/
+/* Configuration headers and checks.*/
 #include "chtypes.h"
 #include "chconf.h"
 
@@ -74,12 +74,27 @@
 #error "invalid configuration file"
 #endif
 
+#if !defined(_CHIBIOS_RT_CONF_VER_5_0_)
+#error "obsolete or unknown configuration file"
+#endif
+
+/* Early function prototypes required by the following headers.*/
+#ifdef __cplusplus
+extern "C" {
+#endif
+  void chSysHalt(const char *reason);
+#ifdef __cplusplus
+}
+#endif
+
+/* Including everything else.*/
 #include "chlicense.h"
 #include "chchecks.h"
 #include "chsystypes.h"
+#include "chdebug.h"
+#include "chtime.h"
 #include "chalign.h"
 #include "chcore.h"
-#include "chdebug.h"
 #include "chtrace.h"
 #include "chtm.h"
 #include "chstats.h"
@@ -100,11 +115,9 @@
 #include "chmemcore.h"
 #include "chheap.h"
 #include "chmempools.h"
+#include "chfifo.h"
+#include "chfactory.h"
 #include "chdynamic.h"
-
-#if !defined(_CHIBIOS_RT_CONF_)
-#error "missing or wrong configuration file"
-#endif
 
 #endif /* CH_H */
 

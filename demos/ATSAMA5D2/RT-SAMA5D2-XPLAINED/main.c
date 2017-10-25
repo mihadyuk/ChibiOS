@@ -14,17 +14,63 @@
     limitations under the License.
 */
 
-#include <stdbool.h>
-
 #include "ch.h"
+#include "hal.h"
+#include "rt_test_root.h"
+#include "oslib_test_root.h"
+
+/*
+ * LED blinker thread, times are in milliseconds.
+ */
+static THD_WORKING_AREA(waThread1, 512);
+static THD_FUNCTION(Thread1, arg) {
+
+  (void)arg;
+  chRegSetThreadName("blinker");
+
+  while (true) {
+    palToggleLine(LINE_LED_BLUE);
+    chThdSleepMilliseconds(500);
+  }
+}
 
 /*
  * Application entry point.
  */
 int main(void) {
 
+  /*
+   * System initializations.
+   * - HAL initialization, this also initializes the configured device drivers
+   *   and performs the board-specific initializations.
+   * - Kernel initialization, the main() function becomes a thread and the
+   *   RTOS is active.
+   */
+  halInit();
   chSysInit();
 
+  /*
+   * Activates the serial driver 0 using the driver default configuration.
+   */
+  sdStart(&SD0, NULL);
+
+  /* Redirecting  UART0 RX on PB26 and UART0 TX on PB 27. */
+  palSetGroupMode(PIOB, PAL_PORT_BIT(26) | PAL_PORT_BIT(27), 0U,
+                  PAL_SAMA_FUNC_PERIPH_C | PAL_MODE_SECURE);
+  /*
+   * Creates the blinker thread.
+   */
+  chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
+
+  /*
+   * Normal main() thread activity, in this demo it does nothing except
+   * sleeping in a loop and check the button state.
+   */
   while (true) {
+    if(!palReadPad(PIOB, PIOB_USER_PB)) {
+      test_execute((BaseSequentialStream *)&SD0, &rt_test_suite);
+      test_execute((BaseSequentialStream *)&SD0, &oslib_test_suite);
+    }
+    chThdSleepMilliseconds(500);
   }
 }

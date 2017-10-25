@@ -19,7 +19,6 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "ch_test.h"
 
 #include "chprintf.h"
 #include "shell.h"
@@ -123,7 +122,7 @@ static FRESULT scan_files(BaseSequentialStream *chp, char *path) {
   if (res == FR_OK) {
     i = strlen(path);
     while (((res = f_readdir(&dir, &fno)) == FR_OK) && fno.fname[0]) {
-      if (_FS_RPATH && fno.fname[0] == '.')
+      if (FF_FS_RPATH && fno.fname[0] == '.')
         continue;
       fn = fno.fname;
       if (fno.fattrib & AM_DIR) {

@@ -367,7 +367,7 @@ size_t uartStopReceiveI(UARTDriver *uartp) {
  * @api
  */
 msg_t uartSendTimeout(UARTDriver *uartp, size_t *np,
-                      const void *txbuf, systime_t timeout) {
+                      const void *txbuf, sysinterval_t timeout) {
   msg_t msg;
 
   osalDbgCheck((uartp != NULL) && (*np > 0U) && (txbuf != NULL));
@@ -384,7 +384,7 @@ msg_t uartSendTimeout(UARTDriver *uartp, size_t *np,
   /* Waiting for result.*/
   msg = osalThreadSuspendTimeoutS(&uartp->threadtx, timeout);
   if (msg != MSG_OK) {
-    *np = uartStopSendI(uartp);
+    *np -= uartStopSendI(uartp);
   }
   osalSysUnlock();
 
@@ -412,7 +412,7 @@ msg_t uartSendTimeout(UARTDriver *uartp, size_t *np,
  * @api
  */
 msg_t uartSendFullTimeout(UARTDriver *uartp, size_t *np,
-                          const void *txbuf, systime_t timeout) {
+                          const void *txbuf, sysinterval_t timeout) {
   msg_t msg;
 
   osalDbgCheck((uartp != NULL) && (*np > 0U) && (txbuf != NULL));
@@ -459,7 +459,7 @@ msg_t uartSendFullTimeout(UARTDriver *uartp, size_t *np,
  * @api
  */
 msg_t uartReceiveTimeout(UARTDriver *uartp, size_t *np,
-                         void *rxbuf, systime_t timeout) {
+                         void *rxbuf, sysinterval_t timeout) {
   msg_t msg;
 
   osalDbgCheck((uartp != NULL) && (*np > 0U) && (rxbuf != NULL));
@@ -475,7 +475,7 @@ msg_t uartReceiveTimeout(UARTDriver *uartp, size_t *np,
   /* Waiting for result.*/
   msg = osalThreadSuspendTimeoutS(&uartp->threadrx, timeout);
   if (msg != MSG_OK) {
-    *np = uartStopReceiveI(uartp);
+    *np -= uartStopReceiveI(uartp);
   }
   osalSysUnlock();
 

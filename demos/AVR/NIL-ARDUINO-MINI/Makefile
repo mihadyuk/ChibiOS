@@ -6,7 +6,7 @@
 # @brief  AVR Make file, it can be use to build, and program an application to
 #         an AVR MCU like atmega328p, atmega2560 and so on.
 #
-# @author Theodore Ateba, tfateba@gmail.com
+# @author Theodore Ateba, tf.ateba@gmail.com
 #
 ##############################################################################
 
@@ -84,35 +84,29 @@ PROJECT = ch
 
 # Imported source files and paths
 CHIBIOS = ../../..
+
+# Licensing files.
+include $(CHIBIOS)/os/license/license.mk
+
 # HAL-OSAL files (optional).
 include $(CHIBIOS)/os/hal/hal.mk
 include $(CHIBIOS)/os/hal/boards/ARDUINO_MINI/board.mk
 include $(CHIBIOS)/os/hal/ports/AVR/MEGA/ATMEGAxx/platform.mk
 include $(CHIBIOS)/os/hal/osal/nil/osal.mk
+
 # RTOS files (optional).
 include $(CHIBIOS)/os/nil/nil.mk
 include $(CHIBIOS)/os/common/ports/AVR/compilers/GCC/mk/port.mk
-# Other files (optional).
-include $(CHIBIOS)/test/lib/test.mk
-include $(CHIBIOS)/test/nil/nil_test.mk
-include $(CHIBIOS)/test/oslib/oslib_test.mk
 
 # List C source files here. (C dependencies are automatically generated.)
-CSRC =  $(KERNSRC)                      \
-        $(PORTSRC)                      \
-        $(OSALSRC)                      \
-        $(HALSRC)                       \
-        $(PLATFORMSRC)                  \
-        $(BOARDSRC)                     \
-        $(TESTSRC)                      \
+CSRC =  $(ALLCSRC) \
         main.c
 
 # List C++ sources file here.
-CPPSRC =
+CPPSRC = $(ALLCPPSRC)
 
-INCDIR =  $(CHIBIOS)/os/license $(PORTINC) $(KERNINC)     \
-          $(HALINC) $(OSALINC) $(PLATFORMINC) $(TESTINC)  \
-          $(BOARDINC)
+# Header files here.
+INCDIR =  $(ALLINC)
 
 #
 # Project, sources and paths.

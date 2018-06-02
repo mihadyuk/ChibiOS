@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@
  * @brief   Link poll interval.
  */
 #if !defined(LWIP_LINK_POLL_INTERVAL) || defined(__DOXYGEN__)
-#define LWIP_LINK_POLL_INTERVAL             S2ST(5)
+#define LWIP_LINK_POLL_INTERVAL             TIME_S2I(5)
 #endif
 
 /**

@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -158,7 +158,7 @@ static uint8_t sd_out_buf3[STM32_SERIAL_USART3_OUT_BUF_SIZE];
 static uint8_t sd_in_buf4[STM32_SERIAL_UART4_IN_BUF_SIZE];
 
 /** @brief Output buffer for SD4.*/
-static uint8_t sd_out_buf4[STM32_SERIAL_UART4_IN_BUF_SIZE];
+static uint8_t sd_out_buf4[STM32_SERIAL_UART4_OUT_BUF_SIZE];
 #endif
 
 #if STM32_SERIAL_USE_UART5 || defined(__DOXYGEN__)
@@ -166,7 +166,7 @@ static uint8_t sd_out_buf4[STM32_SERIAL_UART4_IN_BUF_SIZE];
 static uint8_t sd_in_buf5[STM32_SERIAL_UART5_IN_BUF_SIZE];
 
 /** @brief Output buffer for SD5.*/
-static uint8_t sd_out_buf5[STM32_SERIAL_UART5_IN_BUF_SIZE];
+static uint8_t sd_out_buf5[STM32_SERIAL_UART5_OUT_BUF_SIZE];
 #endif
 
 #if STM32_SERIAL_USE_USART6 || defined(__DOXYGEN__)
@@ -213,17 +213,26 @@ static uint8_t sd_out_buflp1[STM32_SERIAL_LPUART1_OUT_BUF_SIZE];
  * @param[in] config    the architecture-dependent serial driver configuration
  */
 static void usart_init(SerialDriver *sdp, const SerialConfig *config) {
+  uint32_t fck;
   USART_TypeDef *u = sdp->usart;
 
   /* Baud rate setting.*/
 #if STM32_SERIAL_USE_LPUART1
-  if ( sdp == &LPSD1 )
-  {
-      u->BRR = (uint32_t)( ( (uint64_t)sdp->clock * 256 ) / config->speed);
+  if ( sdp == &LPSD1 ) {
+    fck = (uint32_t)(((uint64_t)sdp->clock * 256 ) / config->speed);
   }
   else
 #endif
-  u->BRR = (uint32_t)(sdp->clock / config->speed);
+  {
+    fck = (uint32_t)(sdp->clock / config->speed);
+  }
+
+  /* Correcting USARTDIV when oversampling by 8 instead of 16.
+     Fraction is still 4 bits wide, but only lower 3 bits used.
+     Mantissa is doubled, but Fraction is left the same.*/
+  if (config->cr1 & USART_CR1_OVER8)
+    fck = ((fck & ~7) * 2) | (fck & 7);
+  u->BRR = fck;
 
   /* Note that some bits are enforced.*/
   u->CR2 = config->cr2 | USART_CR2_LBDIE;
@@ -334,11 +343,12 @@ static void serve_interrupt(SerialDriver *sdp) {
   }
 
   /* Physical transmission end.*/
-  if (isr & USART_ISR_TC) {
+  if ((cr1 & USART_CR1_TCIE) && (isr & USART_ISR_TC)) {
     osalSysLockFromISR();
-    if (oqIsEmptyI(&sdp->oqueue))
+    if (oqIsEmptyI(&sdp->oqueue)) {
       chnAddFlagsI(sdp, CHN_TRANSMISSION_END);
-    u->CR1 = cr1 & ~USART_CR1_TCIE;
+      u->CR1 = cr1 & ~USART_CR1_TCIE;
+    }
     osalSysUnlockFromISR();
   }
 }
@@ -767,47 +777,47 @@ void sd_lld_start(SerialDriver *sdp, const SerialConfig *config) {
   if (sdp->state == SD_STOP) {
 #if STM32_SERIAL_USE_USART1
     if (&SD1 == sdp) {
-      rccEnableUSART1(FALSE);
+      rccEnableUSART1(true);
     }
 #endif
 #if STM32_SERIAL_USE_USART2
     if (&SD2 == sdp) {
-      rccEnableUSART2(FALSE);
+      rccEnableUSART2(true);
     }
 #endif
 #if STM32_SERIAL_USE_USART3
     if (&SD3 == sdp) {
-      rccEnableUSART3(FALSE);
+      rccEnableUSART3(true);
     }
 #endif
 #if STM32_SERIAL_USE_UART4
     if (&SD4 == sdp) {
-      rccEnableUART4(FALSE);
+      rccEnableUART4(true);
     }
 #endif
 #if STM32_SERIAL_USE_UART5
     if (&SD5 == sdp) {
-      rccEnableUART5(FALSE);
+      rccEnableUART5(true);
     }
 #endif
 #if STM32_SERIAL_USE_USART6
     if (&SD6 == sdp) {
-      rccEnableUSART6(FALSE);
+      rccEnableUSART6(true);
     }
 #endif
 #if STM32_SERIAL_USE_UART7
     if (&SD7 == sdp) {
-      rccEnableUART7(FALSE);
+      rccEnableUART7(true);
     }
 #endif
 #if STM32_SERIAL_USE_UART8
     if (&SD8 == sdp) {
-      rccEnableUART8(FALSE);
+      rccEnableUART8(true);
     }
 #endif
 #if STM32_SERIAL_USE_LPUART1
     if (&LPSD1 == sdp) {
-      rccEnableLPUART1(FALSE);
+      rccEnableLPUART1(true);
     }
 #endif
   }
@@ -831,55 +841,55 @@ void sd_lld_stop(SerialDriver *sdp) {
 
 #if STM32_SERIAL_USE_USART1
     if (&SD1 == sdp) {
-      rccDisableUSART1(FALSE);
+      rccDisableUSART1();
       return;
     }
 #endif
 #if STM32_SERIAL_USE_USART2
     if (&SD2 == sdp) {
-      rccDisableUSART2(FALSE);
+      rccDisableUSART2();
       return;
     }
 #endif
 #if STM32_SERIAL_USE_USART3
     if (&SD3 == sdp) {
-      rccDisableUSART3(FALSE);
+      rccDisableUSART3();
       return;
     }
 #endif
 #if STM32_SERIAL_USE_UART4
     if (&SD4 == sdp) {
-      rccDisableUART4(FALSE);
+      rccDisableUART4();
       return;
     }
 #endif
 #if STM32_SERIAL_USE_UART5
     if (&SD5 == sdp) {
-      rccDisableUART5(FALSE);
+      rccDisableUART5();
       return;
     }
 #endif
 #if STM32_SERIAL_USE_USART6
     if (&SD6 == sdp) {
-      rccDisableUSART6(FALSE);
+      rccDisableUSART6();
       return;
     }
 #endif
 #if STM32_SERIAL_USE_UART7
     if (&SD7 == sdp) {
-      rccDisableUART7(FALSE);
+      rccDisableUART7();
       return;
     }
 #endif
 #if STM32_SERIAL_USE_UART8
     if (&SD8 == sdp) {
-      rccDisableUART8(FALSE);
+      rccDisableUART8();
       return;
     }
 #endif
 #if STM32_SERIAL_USE_LPUART1
     if (&LPSD1 == sdp) {
-      rccDisableLPUART1(FALSE);
+      rccDisableLPUART1();
       return;
     }
 #endif

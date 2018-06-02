@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 #include "hal.h"
 #include "rt_test_root.h"
 #include "oslib_test_root.h"
-
 /*
  * LED blinker thread, times are in milliseconds.
  */
@@ -30,9 +29,25 @@ static THD_FUNCTION(Thread1, arg) {
 
   while (true) {
     palToggleLine(LINE_LED_BLUE);
-    chThdSleepMilliseconds(500);
+    chThdSleepMilliseconds(80);
+    palToggleLine(LINE_LED_BLUE);
+    chThdSleepMilliseconds(120);
+    palToggleLine(LINE_LED_BLUE);
+    chThdSleepMilliseconds(120);
+    palToggleLine(LINE_LED_BLUE);
+    chThdSleepMilliseconds(120);
+    palToggleLine(LINE_LED_BLUE);
+    chThdSleepMilliseconds(160);
+    palToggleLine(LINE_LED_BLUE);
+    chThdSleepMilliseconds(600);
   }
 }
+
+static const SerialConfig sdcfg = {
+  115200,
+  0,
+  UART_MR_PAR_NO
+};
 
 /*
  * Application entry point.
@@ -52,11 +67,8 @@ int main(void) {
   /*
    * Activates the serial driver 0 using the driver default configuration.
    */
-  sdStart(&SD0, NULL);
+  sdStart(&SD1, &sdcfg);
 
-  /* Redirecting  UART0 RX on PB26 and UART0 TX on PB 27. */
-  palSetGroupMode(PIOB, PAL_PORT_BIT(26) | PAL_PORT_BIT(27), 0U,
-                  PAL_SAMA_FUNC_PERIPH_C | PAL_MODE_SECURE);
   /*
    * Creates the blinker thread.
    */
@@ -68,8 +80,8 @@ int main(void) {
    */
   while (true) {
     if(!palReadPad(PIOB, PIOB_USER_PB)) {
-      test_execute((BaseSequentialStream *)&SD0, &rt_test_suite);
-      test_execute((BaseSequentialStream *)&SD0, &oslib_test_suite);
+      test_execute((BaseSequentialStream *)&SD1, &rt_test_suite);
+      test_execute((BaseSequentialStream *)&SD1, &oslib_test_suite);
     }
     chThdSleepMilliseconds(500);
   }

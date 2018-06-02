@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -18,7 +18,7 @@
 */
 
 /**
- * @file    ch.h
+ * @file    nil/include/ch.h
  * @brief   Nil RTOS main header file.
  * @details This header includes all the required kernel headers so it is the
  *          only header you usually need to include in your application.
@@ -71,6 +71,26 @@
  * @brief   Kernel version patch number.
  */
 #define CH_KERNEL_PATCH         0
+/** @} */
+
+/**
+ * @name    Constants for configuration options
+ */
+/**
+ * @brief   Generic 'false' preprocessor boolean constant.
+ * @note    It is meant to be used in configuration files as switch.
+ */
+#if !defined(FALSE) || defined(__DOXYGEN__)
+#define FALSE               0
+#endif
+
+/**
+ * @brief   Generic 'true' preprocessor boolean constant.
+ * @note    It is meant to be used in configuration files as switch.
+ */
+#if !defined(TRUE) || defined(__DOXYGEN__)
+#define TRUE                1
+#endif
 /** @} */
 
 /**
@@ -263,6 +283,60 @@
 #if !defined(CH_CFG_USE_MEMPOOLS) || defined(__DOXYGEN__)
 #define CH_CFG_USE_MEMPOOLS                 TRUE
 #endif
+/**
+ * @brief   Objects Factory APIs.
+ * @details If enabled then the objects factory APIs are included in the
+ *          kernel.
+ *
+ * @note    The default is @p FALSE.
+ */
+#if !defined(CH_CFG_USE_FACTORY) || defined(__DOXYGEN__)
+#define CH_CFG_USE_FACTORY                  TRUE
+#endif
+
+/**
+ * @brief   Maximum length for object names.
+ * @details If the specified length is zero then the name is stored by
+ *          pointer but this could have unintended side effects.
+ */
+#if !defined(CH_CFG_FACTORY_MAX_NAMES_LENGTH) || defined(__DOXYGEN__)
+#define CH_CFG_FACTORY_MAX_NAMES_LENGTH     8
+#endif
+
+/**
+ * @brief   Enables the registry of generic objects.
+ */
+#if !defined(CH_CFG_FACTORY_OBJECTS_REGISTRY) || defined(__DOXYGEN__)
+#define CH_CFG_FACTORY_OBJECTS_REGISTRY     TRUE
+#endif
+
+/**
+ * @brief   Enables factory for generic buffers.
+ */
+#if !defined(CH_CFG_FACTORY_GENERIC_BUFFERS) || defined(__DOXYGEN__)
+#define CH_CFG_FACTORY_GENERIC_BUFFERS      TRUE
+#endif
+
+/**
+ * @brief   Enables factory for semaphores.
+ */
+#if !defined(CH_CFG_FACTORY_SEMAPHORES) || defined(__DOXYGEN__)
+#define CH_CFG_FACTORY_SEMAPHORES           TRUE
+#endif
+
+/**
+ * @brief   Enables factory for mailboxes.
+ */
+#if !defined(CH_CFG_FACTORY_MAILBOXES) || defined(__DOXYGEN__)
+#define CH_CFG_FACTORY_MAILBOXES            TRUE
+#endif
+
+/**
+ * @brief   Enables factory for objects FIFOs.
+ */
+#if !defined(CH_CFG_FACTORY_OBJ_FIFOS) || defined(__DOXYGEN__)
+#define CH_CFG_FACTORY_OBJ_FIFOS            TRUE
+#endif
 
 /*-*
  * @brief   Debug option, kernel statistics.
@@ -364,6 +438,11 @@
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
 
+/* License checks.*/
+#if !defined(CH_CUSTOMER_LIC_NIL) || !defined(CH_LICENSE_FEATURES)
+#error "malformed chlicense.h"
+#endif
+
 #if CH_CUSTOMER_LIC_NIL == FALSE
 #error "ChibiOS/NIL not licensed"
 #endif
@@ -414,6 +493,10 @@
 #error "missing or wrong configuration file"
 #endif
 
+#if !defined(_CHIBIOS_NIL_CONF_VER_3_0_)
+#error "obsolete or unknown configuration file"
+#endif
+
 #if CH_CFG_NUM_THREADS < 1
 #error "at least one thread must be defined"
 #endif
@@ -428,7 +511,7 @@
 #endif
 
 #if CH_CFG_ST_FREQUENCY <= 0
-#error "invalid CH_CFG_ST_FREQUENCY specified, must be greated than zero"
+#error "invalid CH_CFG_ST_FREQUENCY specified, must be greater than zero"
 #endif
 
 #if (CH_CFG_ST_TIMEDELTA < 0) || (CH_CFG_ST_TIMEDELTA == 1)
@@ -1362,8 +1445,8 @@ struct nil_system {
  * @xclass
  */
 #define chTimeIsInRangeX(time, start, end)                                  \
-  ((bool)(((systime_t)(time) - (systime_t)(start)) <                        \
-          ((systime_t)(end) - (systime_t)(start))))
+  ((bool)((systime_t)((systime_t)(time) - (systime_t)(start)) <             \
+          (systime_t)((systime_t)(end) - (systime_t)(start))))
 
 /**
  * @brief   Function parameters check.
@@ -1498,11 +1581,8 @@ extern "C" {
 }
 #endif
 
-/* Optional subsystems.*/
-#include "chmboxes.h"
-#include "chmemcore.h"
-#include "chmempools.h"
-#include "chheap.h"
+/* OSLIB.*/
+#include "chlib.h"
 
 #endif /* CH_H */
 

@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@
   /* Channel read method with timeout specification.*/                      \
   size_t (*readt)(void *instance, uint8_t *bp, size_t n,                    \
                   sysinterval_t time);                                      \
-  /* Channel put method with timeout specification.*/                       \
+  /* Channel control method.*/                                              \
   msg_t (*ctl)(void *instance, unsigned int operation, void *arg);
 
 /**
@@ -220,7 +220,7 @@ typedef struct {
  *
  * @api
  */
-#define chnControl(sdp, operation, arg) ((ip)->vmt->ctl(ip, operation, arg)
+#define chnControl(ip, operation, arg) ((ip)->vmt->ctl(ip, operation, arg)
 /** @} */
 
 /**

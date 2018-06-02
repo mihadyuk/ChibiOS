@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -61,6 +61,7 @@ SCB_ICSR        SET     0xE000ED04
                 SECTION .text:CODE:NOROOT(2)
 
                 EXTERN  chThdExit
+                EXTERN  chSysHalt
                 EXTERN  chSchDoReschedule
 #if CH_DBG_STATISTICS
                 EXTERN   _stats_start_measure_crit_thd

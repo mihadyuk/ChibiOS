@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -21,7 +21,9 @@
  * @file    chversion.h
  * @brief   Version Module macros and structures.
  *
- * @addtogroup version
+ * @addtogroup chibios_version
+ * @details This module contains information about the ChibiOS release, it
+ *          is common to all subsystems.
  * @{
  */
 

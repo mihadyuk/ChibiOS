@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -34,9 +34,9 @@
 
 #include "avr_timers.h"
 
-/*===========================================================================*/
-/* Driver constants.                                                         */
-/*===========================================================================*/
+/*==========================================================================*/
+/* Driver constants.                                                        */
+/*==========================================================================*/
 
 #if !defined(AVR_PWM_USE_TIM1)
 #define AVR_PWM_USE_TIM1 FALSE
@@ -54,9 +54,9 @@
 #define AVR_PWM_USE_TIM5 FALSE
 #endif
 
-/*===========================================================================*/
-/* Driver pre-compile time settings.                                         */
-/*===========================================================================*/
+/*==========================================================================*/
+/* Driver pre-compile time settings.                                        */
+/*==========================================================================*/
 
 /**
  * @brief   Number of PWM channels per PWM driver.
@@ -69,15 +69,13 @@
   #endif
 #endif
 
-#define MAX_PWM_VALUE           0x3FF
+/*==========================================================================*/
+/* Derived constants and error checks.                                      */
+/*==========================================================================*/
 
-/*===========================================================================*/
-/* Derived constants and error checks.                                       */
-/*===========================================================================*/
-
-/*===========================================================================*/
-/* Driver data structures and types.                                         */
-/*===========================================================================*/
+/*==========================================================================*/
+/* Driver data structures and types.                                        */
+/*==========================================================================*/
 
 /**
  * @brief PWM mode type.
@@ -115,7 +113,7 @@ typedef struct {
    *        @p NULL then the callback is disabled.
    */
   pwmcallback_t             callback;
-  /* End of the mandatory fields.*/
+  /* End of the mandatory fields. */
 } PWMChannelConfig;
 
 /**
@@ -129,7 +127,7 @@ typedef struct {
    * @note    The low level can use assertions in order to catch invalid
    *          frequency specifications.
    */
-  uint16_t                  frequency;
+  uint32_t                  frequency;
   /**
    * @brief   PWM period in ticks.
    * @note    The low level can use assertions in order to catch invalid
@@ -146,7 +144,7 @@ typedef struct {
    * @brief Channels configurations.
    */
   PWMChannelConfig          channels[PWM_CHANNELS];
-  /* End of the mandatory fields.*/
+  /* End of the mandatory fields. */
 } PWMConfig;
 
 /**
@@ -178,16 +176,16 @@ struct PWMDriver {
 #if defined(PWM_DRIVER_EXT_FIELDS)
   PWM_DRIVER_EXT_FIELDS
 #endif
-  /* End of the mandatory fields.*/
+  /* End of the mandatory fields. */
 };
 
-/*===========================================================================*/
-/* Driver macros.                                                            */
-/*===========================================================================*/
+/*==========================================================================*/
+/* Driver macros.                                                           */
+/*==========================================================================*/
 
-/*===========================================================================*/
-/* External declarations.                                                    */
-/*===========================================================================*/
+/*==========================================================================*/
+/* External declarations.                                                   */
+/*==========================================================================*/
 
 #if AVR_PWM_USE_TIM1 || defined(__DOXYGEN__)
 extern PWMDriver PWMD1;

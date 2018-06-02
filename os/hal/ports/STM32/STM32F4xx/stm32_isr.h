@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -129,6 +129,12 @@
 #define STM32_TIM13_NUMBER          44 /* Note: same as STM32_TIM8_UP */
 #define STM32_TIM14_NUMBER          45
 
+/*
+ * LPTIM units.
+ */
+#define STM32_LPTIM1_HANDLER        Vector1C4
+
+#define STM32_LPTIM1_NUMBER         97
 /*
  * USART units.
  */

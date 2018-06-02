@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -18,12 +18,12 @@
 */
 
 /**
- * @file    ch.h
+ * @file    rt/include/ch.h
  * @brief   ChibiOS/RT main include file.
- * @details This header includes all the required kernel headers so it is the
- *          only kernel header you usually want to include in your application.
  *
  * @addtogroup kernel_info
+ * @details This header includes all the required kernel headers so it is the
+ *          only kernel header you usually want to include in your application.
  * @details Kernel related info.
  * @{
  */
@@ -66,19 +66,33 @@
 #define CH_KERNEL_PATCH         0
 /** @} */
 
-/* Configuration headers and checks.*/
-#include "chtypes.h"
+/**
+ * @name    Constants for configuration options
+ */
+/**
+ * @brief   Generic 'false' preprocessor boolean constant.
+ * @note    It is meant to be used in configuration files as switch.
+ */
+#if !defined(FALSE) || defined(__DOXYGEN__)
+#define FALSE               0
+#endif
+
+/**
+ * @brief   Generic 'true' preprocessor boolean constant.
+ * @note    It is meant to be used in configuration files as switch.
+ */
+#if !defined(TRUE) || defined(__DOXYGEN__)
+#define TRUE                1
+#endif
+/** @} */
+
+/* Configuration headers, checks and licensing restrictions.*/
 #include "chconf.h"
+#include "chchecks.h"
+#include "chlicense.h"
+#include "chrestrictions.h"
 
-#if !defined(_CHIBIOS_RT_CONF_)
-#error "invalid configuration file"
-#endif
-
-#if !defined(_CHIBIOS_RT_CONF_VER_5_0_)
-#error "obsolete or unknown configuration file"
-#endif
-
-/* Early function prototypes required by the following headers.*/
+/* Early function prototype required by the following headers.*/
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -87,9 +101,8 @@ extern "C" {
 }
 #endif
 
-/* Including everything else.*/
-#include "chlicense.h"
-#include "chchecks.h"
+/* Base kernel headers.*/
+#include "chtypes.h" /* TODO: Rename and rework.*/
 #include "chsystypes.h"
 #include "chdebug.h"
 #include "chtime.h"
@@ -106,17 +119,15 @@ extern "C" {
 /* Optional subsystems headers.*/
 #include "chregistry.h"
 #include "chsem.h"
-#include "chbsem.h"
 #include "chmtx.h"
 #include "chcond.h"
 #include "chevents.h"
 #include "chmsg.h"
-#include "chmboxes.h"
-#include "chmemcore.h"
-#include "chheap.h"
-#include "chmempools.h"
-#include "chfifo.h"
-#include "chfactory.h"
+
+/* OSLIB.*/
+#include "chlib.h"
+
+/* Headers dependent on the OSLIB.*/
 #include "chdynamic.h"
 
 #endif /* CH_H */

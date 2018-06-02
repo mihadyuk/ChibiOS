@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@
  * Maximum speed SPI configuration (27MHz, CPHA=0, CPOL=0, MSb first).
  */
 static const SPIConfig hs_spicfg = {
+  false,
   NULL,
   GPIOB,
   GPIOB_ARD_D15,
@@ -40,6 +41,7 @@ static const SPIConfig hs_spicfg = {
  * Low speed SPI configuration (421.875kHz, CPHA=0, CPOL=0, MSb first).
  */
 static const SPIConfig ls_spicfg = {
+  false,
   NULL,
   GPIOB,
   GPIOB_ARD_D14,
@@ -167,25 +169,15 @@ int main(void) {
   /*
    * Starting the transmitter and receiver threads.
    */
-//  chThdCreateStatic(spi_thread_1_wa, sizeof(spi_thread_1_wa),
-//                    NORMALPRIO + 1, spi_thread_1, NULL);
-//  chThdCreateStatic(spi_thread_2_wa, sizeof(spi_thread_2_wa),
-//                    NORMALPRIO + 1, spi_thread_2, NULL);
+  chThdCreateStatic(spi_thread_1_wa, sizeof(spi_thread_1_wa),
+                    NORMALPRIO + 1, spi_thread_1, NULL);
+  chThdCreateStatic(spi_thread_2_wa, sizeof(spi_thread_2_wa),
+                    NORMALPRIO + 1, spi_thread_2, NULL);
 
   /*
    * Normal main() thread activity, in this demo it does nothing.
    */
-  uint8_t byte = 0x55;
   while (true) {
     chThdSleepMilliseconds(500);
-    spiStart(&SPID2, &hs_spicfg);
-
-    spiSelect(&SPID2);
-    spiSend(&SPID2, 1, &byte);
-    spiUnselect(&SPID2);
-
-    spiSelect(&SPID2);
-    spiSend(&SPID2, 1, &byte);
-    spiUnselect(&SPID2);
   }
 }

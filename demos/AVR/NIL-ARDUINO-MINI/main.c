@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ THD_FUNCTION(Thread2, arg) {
 
   /*
    * Activates the serial driver 1 using the driver default configuration.
-   * PA9 and PA10 are routed to USART1.
+   * PD0(RX) and PD1(TX) are routed to USART0.
    */
   sdStart(&SD1, NULL);
 

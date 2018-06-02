@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,61 +15,50 @@
 */
 
 #include "hal.h"
-
-#ifdef _NIL_
-#include "nil.h"
-#else
 #include "ch.h"
-#endif
 
-#ifdef _NIL_
-THD_WORKING_AREA(waThread1, 128);
-THD_FUNCTION(Thread1, arg) {
-  (void)arg;
-  while (true) {
-    chThdSleepMilliseconds(1);
-  }
-}
+#define PERIOD  0x7FFF
 
-THD_TABLE_BEGIN
-  THD_TABLE_ENTRY(waThread1, "main", Thread1, NULL)
-THD_TABLE_END
-#endif
+/**
+ * @brief   PWM configuration structure.
+ */
+static PWMConfig pwm3cfg = {
+  F_CPU,                            /* PWM frequency.         */
+  PERIOD,                           /* PWM period.            */
+  NULL,                             /* TODO: comment.         */
+  {
+    {PWM_OUTPUT_ACTIVE_HIGH, NULL}, /* PWM channel 1 actived. */
+    {PWM_OUTPUT_ACTIVE_HIGH, NULL}, /* PWM channel 2 actived. */
+    {PWM_OUTPUT_ACTIVE_HIGH, NULL}, /* PWM channel 3 actived. */
+  },
+};
 
+/**
+ * Application entry point.
+ */
 int main(void) {
-
-  halInit();
-
   /*
-   * NOTE: when compiling for NIL, after the chSysInit() call, nothing
-   * more can be done in this thread so we first initialize PWM subsystem.
+   * System initializations.
+   * - HAL initialization, this also initializes the configured device drivers
+   *   and performs the board-specific initializations.
+   * - Kernel initialization, the main() function becomes a thread and the
+   *   RTOS is active.
    */
+  halInit();
+  chSysInit();
 
-  static PWMConfig pwm3cfg = {
-    1023,   /* Not real clock */
-    1023,   /* Maximum PWM count */
-    NULL,
-    {
-      {PWM_OUTPUT_ACTIVE_HIGH, NULL},
-      {PWM_OUTPUT_ACTIVE_HIGH, NULL},
-      {PWM_OUTPUT_ACTIVE_HIGH, NULL},
-    },
-  };
-
-  /* PE3-5 are timer 3 pwm channel outputs */
+  /* PE3-5 are timer 3 pwm channel outputs. */
   palSetPadMode(IOPORT5, 3, PAL_MODE_OUTPUT_PUSHPULL);
   palSetPadMode(IOPORT5, 4, PAL_MODE_OUTPUT_PUSHPULL);
   palSetPadMode(IOPORT5, 5, PAL_MODE_OUTPUT_PUSHPULL);
 
   pwmStart(&PWMD3, &pwm3cfg);
+  /* Channel 0 with 50% duty cycle, 1 with 25% and 2 with 75% */
+  pwmEnableChannel(&PWMD3, 0, PERIOD >> 1);
+  pwmEnableChannel(&PWMD3, 1, PERIOD >> 2);
+  pwmEnableChannel(&PWMD3, 2, (PERIOD >> 2)*3);
 
-  /* channel 0 with 50% duty cycle, 1 with 25% and 2 with 75% */
-  pwmEnableChannel(&PWMD3, 0, 511);
-  pwmEnableChannel(&PWMD3, 1, 255);
-  pwmEnableChannel(&PWMD3, 2, 767);
-
-  chSysInit();
-
-  while (1) {}
+  while (TRUE) {
+  }
 }
 

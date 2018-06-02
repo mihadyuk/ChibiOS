@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -110,10 +110,15 @@
 #define HAL_USE_WDG                         FALSE
 #endif
 
+#if !defined(HAL_USE_WSPI)
+#define HAL_USE_WSPI                        FALSE
+#endif
+
 /* Low Level HAL support.*/
 #include "hal_lld.h"
 
 /* Abstract interfaces.*/
+#include "hal_objects.h"
 #include "hal_streams.h"
 #include "hal_channels.h"
 #include "hal_files.h"
@@ -145,6 +150,7 @@
 #include "hal_uart.h"
 #include "hal_usb.h"
 #include "hal_wdg.h"
+#include "hal_wspi.h"
 
 /*
  *  The ST driver is a special case, it is only included if the OSAL is

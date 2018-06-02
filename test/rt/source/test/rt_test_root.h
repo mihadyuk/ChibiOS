@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2017 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -67,11 +67,11 @@ extern "C" {
 /*
  * Stack size of test threads.
  */
-#if defined(CH_ARCHITECTURE_AVR) || defined(CH_ARCHITECTURE_MSP430)
+#if defined(PORT_ARCHITECTURE_AVR) || defined(PORT__ARCHITECTURE_MSP430)
 #define THREADS_STACK_SIZE      48
-#elif defined(CH_ARCHITECTURE_STM8)
+#elif defined(PORT__ARCHITECTURE_STM8)
 #define THREADS_STACK_SIZE      64
-#elif defined(CH_ARCHITECTURE_SIMIA32)
+#elif defined(PORT__ARCHITECTURE_SIMIA32)
 #define THREADS_STACK_SIZE      512
 #else
 #define THREADS_STACK_SIZE      128
@@ -82,8 +82,6 @@ extern "C" {
  */
 #define WA_SIZE MEM_ALIGN_NEXT(THD_WORKING_AREA_SIZE(THREADS_STACK_SIZE),	\
                                PORT_WORKING_AREA_ALIGN)
-
-#define TEST_REPORT_HOOK_HEADER test_print_port_info();
 
 extern uint8_t test_buffer[WA_SIZE * 5];
 extern thread_t *threads[MAX_THREADS];

@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
  * HAL driver system settings.
  */
 #define SAMA_HAL_IS_SECURE                  TRUE
-#define SAMA_NO_INIT                        FALSE
+#define SAMA_NO_INIT                        TRUE
 #define SAMA_MOSCRC_ENABLED                 FALSE
 #define SAMA_MOSCXT_ENABLED                 TRUE
 #define SAMA_MOSC_SEL                       SAMA_MOSC_MOSCXT
@@ -34,6 +34,23 @@
 #define SAMA_PLLA_MUL_VALUE                 83
 #define SAMA_PLLADIV2_EN                    TRUE
 #define SAMA_H64MX_H32MX_RATIO              2
+
+/*
+ * ST driver settings.
+ */
+#define SAMA_ST_USE_PIT                     FALSE
+#define SAMA_ST_USE_TC0                     FALSE
+#define SAMA_ST_USE_TC1                     TRUE
+
+/*
+ * SECUMOD driver system settings.
+ */
+#define HAL_USE_SECUMOD                     FALSE
+
+/*
+ * SDMMC driver system settings.
+ */
+#define HAL_USE_SDMMC                       FALSE
 
 /*
  * SPI driver system settings.
@@ -78,6 +95,15 @@
 #define SAMA_SERIAL_FLEXCOM2_IRQ_PRIORITY   4
 #define SAMA_SERIAL_FLEXCOM3_IRQ_PRIORITY   4
 #define SAMA_SERIAL_FLEXCOM4_IRQ_PRIORITY   4
+
+/*
+ * TC driver system settings.
+ */
+#define HAL_USE_TC                          FALSE
+#define SAMA_USE_TC0                        FALSE
+#define SAMA_USE_TC1                        FALSE
+#define SAMA_TC0_IRQ_PRIORITY               2
+#define SAMA_TC1_IRQ_PRIORITY               2
 
 /*
  * UART driver system settings.

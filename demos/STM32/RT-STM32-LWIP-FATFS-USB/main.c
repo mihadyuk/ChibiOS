@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ static void tmrfunc(void *p) {
       chEvtBroadcastI(&removed_event);
     }
   }
-  chVTSetI(&tmr, MS2ST(POLLING_DELAY), tmrfunc, bbdp);
+  chVTSetI(&tmr, TIME_MS2I(POLLING_DELAY), tmrfunc, bbdp);
   chSysUnlockFromISR();
 }
 
@@ -97,7 +97,7 @@ static void tmr_init(void *p) {
   chEvtObjectInit(&removed_event);
   chSysLock();
   cnt = POLLING_INTERVAL;
-  chVTSetI(&tmr, MS2ST(POLLING_DELAY), tmrfunc, p);
+  chVTSetI(&tmr, TIME_MS2I(POLLING_DELAY), tmrfunc, p);
   chSysUnlock();
 }
 
@@ -204,12 +204,20 @@ static void InsertHandler(eventid_t id) {
   /*
    * On insertion SDC initialization and FS mount.
    */
+#if HAL_USE_SDC
   if (sdcConnect(&SDCD1))
+#else
+  if (mmcConnect(&MMCD1))
+#endif
     return;
 
   err = f_mount(&SDC_FS, "/", 1);
   if (err != FR_OK) {
+#if HAL_USE_SDC
     sdcDisconnect(&SDCD1);
+#else
+    mmcDisconnect(&MMCD1);
+#endif
     return;
   }
   fs_ready = TRUE;
@@ -221,7 +229,11 @@ static void InsertHandler(eventid_t id) {
 static void RemoveHandler(eventid_t id) {
 
   (void)id;
-  sdcDisconnect(&SDCD1);
+#if HAL_USE_SDC
+    sdcDisconnect(&SDCD1);
+#else
+    mmcDisconnect(&MMCD1);
+#endif
   fs_ready = FALSE;
 }
 
@@ -300,15 +312,30 @@ int main(void) {
    */
   shellInit();
 
+#if HAL_USE_SDC
   /*
    * Activates the  SDC driver 1 using default configuration.
    */
+
   sdcStart(&SDCD1, NULL);
 
   /*
    * Activates the card insertion monitor.
    */
   tmr_init(&SDCD1);
+#else
+  /*
+   * Initializes the MMC driver to work with SPI3.
+   */
+  palSetPad(IOPORT3, GPIOC_SPI3_SD_CS);
+  mmcObjectInit(&MMCD1);
+  mmcStart(&MMCD1, &portab_mmccfg);
+
+  /*
+   * Activates the card insertion monitor.
+   */
+  tmr_init(&MMCD1);
+#endif
 
   /*
    * Creates the blinker thread.
@@ -333,6 +360,6 @@ int main(void) {
                                     "shell", NORMALPRIO + 1,
                                     shellThread, (void *)&shell_cfg1);
     }
-    chEvtDispatch(evhndl, chEvtWaitOneTimeout(ALL_EVENTS, MS2ST(500)));
+    chEvtDispatch(evhndl, chEvtWaitOneTimeout(ALL_EVENTS, TIME_MS2I(500)));
   }
 }

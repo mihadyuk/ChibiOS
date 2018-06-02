@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "rt_test_root.h"
-#include "oslib_test_root.h"
 
+/*
+ * LED blinker thread, times are in milliseconds.
+ */
 static THD_WORKING_AREA(waThread1, 32);
 static THD_FUNCTION(Thread1, arg) {
 
@@ -57,7 +58,6 @@ int main(void) {
    */
   chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
 
-  test_execute((BaseSequentialStream *)&SD1, &rt_test_suite);
   while(TRUE) {
     chThdSleepMilliseconds(1000);
   }

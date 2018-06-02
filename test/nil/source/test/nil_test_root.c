@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2017 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -66,24 +66,6 @@ const testsuite_t nil_test_suite = {
 /*===========================================================================*/
 /* Shared code.                                                              */
 /*===========================================================================*/
-
-void test_print_port_info(void) {
-
-#ifdef PORT_COMPILER_NAME
-  test_print("*** Compiler:     ");
-  test_println(PORT_COMPILER_NAME);
-#endif
-  test_print("*** Architecture: ");
-  test_println(PORT_ARCHITECTURE_NAME);
-#ifdef PORT_CORE_VARIANT_NAME
-  test_print("*** Core Variant: ");
-  test_println(PORT_CORE_VARIANT_NAME);
-#endif
-#ifdef PORT_INFO
-  test_print("*** Port Info:    ");
-  test_println(PORT_INFO);
-#endif
-}
 
 semaphore_t gsem1, gsem2;
 thread_reference_t gtr1;

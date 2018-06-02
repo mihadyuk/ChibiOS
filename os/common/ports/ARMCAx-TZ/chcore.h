@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -39,7 +39,7 @@
 /**
  * @brief   This port supports a realtime counter.
  */
-#define PORT_SUPPORTS_RT                FALSE
+#define PORT_SUPPORTS_RT                TRUE
 
 /**
  * @brief   Natural alignment constant.
@@ -67,7 +67,7 @@
 /**
  * @brief   Macro defining a generic ARM architecture.
  */
-#define PORT_ARCHITECTURE_ARM
+#define PORT_ARCHITECTURE_ARM_TZ
 
 /* The following code is not processed when the file is included from an
    asm module because those intrinsic macros are not necessarily defined
@@ -153,7 +153,7 @@
 /* ARM core check.*/
 #if (ARM_CORE == ARM_CORE_CORTEX_A5) || defined(__DOXYGEN__)
 #define PORT_ARCHITECTURE_ARM_ARM7
-#define PORT_ARCHITECTURE_NAME          "ARMv7"
+#define PORT_ARCHITECTURE_NAME          "ARMv7 (TZ)"
 #define PORT_CORE_VARIANT_NAME          "ARM Cortex-A5"
 
 #elif ARM_CORE == ARM_CORE_CORTEX_A8
@@ -433,21 +433,19 @@ static inline bool port_is_isr_context(void) {
 
 /**
  * @brief   Kernel-lock action.
- * @details In this port it disables the FIQ sources and keeps IRQ sources
- *          disabled.
+ * @details In this port it disables the FIQ and keep IRQ state.
  */
 static inline void port_lock(void) {
 
-  __asm volatile ("msr     CPSR_c, #0xDF" : : : "memory");
+  __asm volatile ("cpsid   if" : : : "memory");
 }
 
 /**
  * @brief   Kernel-unlock action.
- * @details In this port it enables the FIQ sources.
+ * @details In this port it enables the FIQ and IRQ sources.
  */
 static inline void port_unlock(void) {
-
-  __asm volatile ("msr     CPSR_c, #0x9F" : : : "memory");
+  __asm volatile ("cpsie   if" : : : "memory");
 }
 
 /**
@@ -488,11 +486,11 @@ static inline void port_suspend(void) {
 
 /**
  * @brief   Enables all the interrupt sources.
- * @note    In this port it enables the FIQ sources.
+ * @note    In this port it enables the FIQ and IRQ sources.
  */
 static inline void port_enable(void) {
 
-  __asm volatile ("msr     CPSR_c, #0x9F" : : : "memory");
+  __asm volatile ("msr     CPSR_c, #0x1F" : : : "memory");
 }
 
 /**
@@ -506,6 +504,29 @@ static inline void port_enable(void) {
 static inline void port_wait_for_interrupt(void) {
 
   asm volatile ("wfi" : : : "memory");
+}
+
+/**
+ * @brief   Returns the current value of the realtime counter.
+ *
+ * @return              The realtime counter value.
+ */
+static inline rtcnt_t port_rt_get_counter_value(void) {
+
+#if ((ARM_CORE == ARM_CORE_CORTEX_A5) || (ARM_CORE == ARM_CORE_CORTEX_A9) || defined(__DOXYGEN__))
+
+  rtcnt_t cyc;
+
+  __asm volatile("mrc p15, 0, %[p0], c9, c13, 0" : [p0] "=r" (cyc) :);
+
+  return cyc;
+#else
+/*
+ * TODO develop same function for ARM_CORE_CORTEX_A8
+ */
+  return 0;
+
+#endif
 }
 
 #if CH_CFG_ST_TIMEDELTA > 0

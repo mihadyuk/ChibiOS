@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -91,7 +91,7 @@ thread_t *_thread_init(thread_t *tp, const char *name, tprio_t prio) {
   tp->state     = CH_STATE_WTSTART;
   tp->flags     = CH_FLAG_MODE_STATIC;
 #if CH_CFG_TIME_QUANTUM > 0
-  tp->preempt   = (tslices_t)CH_CFG_TIME_QUANTUM;
+  tp->ticks     = (tslices_t)CH_CFG_TIME_QUANTUM;
 #endif
 #if CH_CFG_USE_MUTEXES == TRUE
   tp->realprio  = prio;
@@ -280,7 +280,8 @@ thread_t *chThdCreateI(const thread_descriptor_t *tdp) {
 thread_t *chThdCreate(const thread_descriptor_t *tdp) {
   thread_t *tp;
 
-#if CH_CFG_USE_REGISTRY == TRUE
+#if (CH_CFG_USE_REGISTRY == TRUE) &&                                        \
+    ((CH_DBG_ENABLE_STACK_CHECK == TRUE) || (CH_CFG_USE_DYNAMIC == TRUE))
   chDbgAssert(chRegFindThreadByWorkingArea(tdp->wbase) == NULL,
               "working area in use");
 #endif
@@ -329,7 +330,8 @@ thread_t *chThdCreateStatic(void *wsp, size_t size,
              MEM_IS_ALIGNED(size, PORT_STACK_ALIGN) &&
              (prio <= HIGHPRIO) && (pf != NULL));
 
-#if CH_CFG_USE_REGISTRY == TRUE
+#if (CH_CFG_USE_REGISTRY == TRUE) &&                                        \
+    ((CH_DBG_ENABLE_STACK_CHECK == TRUE) || (CH_CFG_USE_DYNAMIC == TRUE))
   chDbgAssert(chRegFindThreadByWorkingArea(wsp) == NULL,
               "working area in use");
 #endif
@@ -387,7 +389,7 @@ thread_t *chThdStart(thread_t *tp) {
 #if (CH_CFG_USE_REGISTRY == TRUE) || defined(__DOXYGEN__)
 /**
  * @brief   Adds a reference to a thread object.
- * @pre     The configuration option @p CH_CFG_USE_DYNAMIC must be enabled in
+ * @pre     The configuration option @p CH_CFG_USE_REGISTRY must be enabled in
  *          order to use this function.
  *
  * @param[in] tp        pointer to the thread
@@ -414,7 +416,7 @@ thread_t *chThdAddRef(thread_t *tp) {
  *          from the registry.<br>
  *          Threads whose counter reaches zero and are still active become
  *          "detached" and will be removed from registry on termination.
- * @pre     The configuration option @p CH_CFG_USE_DYNAMIC must be enabled in
+ * @pre     The configuration option @p CH_CFG_USE_REGISTRY must be enabled in
  *          order to use this function.
  * @note    Static threads are not affected.
  *

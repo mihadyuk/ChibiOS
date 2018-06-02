@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ static uint8_t dummyrx;
 static void spi_lld_serve_rx_interrupt(SPIDriver *spip, uint32_t flags) {
 
   /* DMA errors handling.*/
-  #if defined(SAMA_SPI_DMA_ERROR_HOOK)
+#if defined(SAMA_SPI_DMA_ERROR_HOOK)
   if ((flags & (XDMAC_CIS_RBEIS | XDMAC_CIS_ROIS)) != 0) {
     SAMA_SPI_DMA_ERROR_HOOK(spip);
   }
@@ -183,13 +183,16 @@ static void spi_lld_serve_tx_interrupt(SPIDriver *spip, uint32_t flags) {
 void spi_lld_init(void) {
 
 #if SAMA_SPI_USE_SPI0
+#if SAMA_HAL_IS_SECURE
+  mtxConfigPeriphSecurity(MATRIX1, ID_SPI0, SECURE_PER);
+#endif /* SAMA_HAL_IS_SECURE */
   /* Driver initialization.*/
   spiObjectInit(&SPID0);
   SPID0.spi       = SPI0;
   SPID0.dmarx     = NULL;
   SPID0.dmatx     = NULL;
   SPID0.rxdmamode = XDMAC_CC_TYPE_PER_TRAN |
-                    XDMAC_CC_MBSIZE_SINGLE |
+                    XDMAC_CC_MBSIZE_SIXTEEN |
                     XDMAC_CC_DSYNC_PER2MEM |
                     XDMAC_CC_PROT_SEC |
                     XDMAC_CC_CSIZE_CHK_1 |
@@ -200,7 +203,7 @@ void spi_lld_init(void) {
                     XDMAC_CC_DAM_INCREMENTED_AM |
                     XDMAC_CC_PERID(PERID_SPI0_RX);
   SPID0.txdmamode = XDMAC_CC_TYPE_PER_TRAN |
-                    XDMAC_CC_MBSIZE_SINGLE |
+                    XDMAC_CC_MBSIZE_SIXTEEN |
                     XDMAC_CC_DSYNC_MEM2PER |
                     XDMAC_CC_PROT_SEC |
                     XDMAC_CC_CSIZE_CHK_1 |
@@ -213,13 +216,16 @@ void spi_lld_init(void) {
 #endif /* SAMA_SPI_USE_SPI0 */
 
 #if SAMA_SPI_USE_SPI1
+#if SAMA_HAL_IS_SECURE
+  mtxConfigPeriphSecurity(MATRIX1, ID_SPI1, SECURE_PER);
+#endif /* SAMA_HAL_IS_SECURE */
   /* Driver initialization.*/
   spiObjectInit(&SPID1);
   SPID1.spi       = SPI1;
   SPID1.dmarx     = NULL;
   SPID1.dmatx     = NULL;
   SPID1.rxdmamode = XDMAC_CC_TYPE_PER_TRAN |
-                    XDMAC_CC_MBSIZE_SINGLE |
+                    XDMAC_CC_MBSIZE_SIXTEEN |
                     XDMAC_CC_DSYNC_PER2MEM |
                     XDMAC_CC_PROT_SEC |
                     XDMAC_CC_CSIZE_CHK_1 |
@@ -230,7 +236,7 @@ void spi_lld_init(void) {
                     XDMAC_CC_DAM_INCREMENTED_AM |
                     XDMAC_CC_PERID(PERID_SPI1_RX);
   SPID1.txdmamode = XDMAC_CC_TYPE_PER_TRAN |
-                    XDMAC_CC_MBSIZE_SINGLE |
+                    XDMAC_CC_MBSIZE_SIXTEEN |
                     XDMAC_CC_DSYNC_MEM2PER |
                     XDMAC_CC_PROT_SEC |
                     XDMAC_CC_CSIZE_CHK_1 |
@@ -243,6 +249,9 @@ void spi_lld_init(void) {
 #endif /* SAMA_SPI_USE_SPI1 */
 
 #if SAMA_SPI_USE_FLEXCOM0
+#if SAMA_HAL_IS_SECURE
+  mtxConfigPeriphSecurity(MATRIX1, ID_FLEXCOM0, SECURE_PER);
+#endif /* SAMA_HAL_IS_SECURE */
   /* Driver initialization.*/
   spiObjectInit(&FSPID0);
   FSPID0.spi       = FCOMSPI0;
@@ -250,30 +259,33 @@ void spi_lld_init(void) {
   FSPID0.dmarx     = NULL;
   FSPID0.dmatx     = NULL;
   FSPID0.rxdmamode = XDMAC_CC_TYPE_PER_TRAN |
-                        XDMAC_CC_MBSIZE_SINGLE |
-                        XDMAC_CC_DSYNC_PER2MEM |
-                        XDMAC_CC_PROT_SEC |
-                        XDMAC_CC_CSIZE_CHK_1 |
-                        XDMAC_CC_DWIDTH_BYTE |
-                        XDMAC_CC_SIF_AHB_IF1 |
-                        XDMAC_CC_DIF_AHB_IF0 |
-                        XDMAC_CC_SAM_FIXED_AM |
-                        XDMAC_CC_DAM_INCREMENTED_AM |
-                        XDMAC_CC_PERID(PERID_FLEXCOM0_RX);
+                     XDMAC_CC_MBSIZE_SIXTEEN |
+                     XDMAC_CC_DSYNC_PER2MEM |
+                     XDMAC_CC_PROT_SEC |
+                     XDMAC_CC_CSIZE_CHK_1 |
+                     XDMAC_CC_DWIDTH_BYTE |
+                     XDMAC_CC_SIF_AHB_IF1 |
+                     XDMAC_CC_DIF_AHB_IF0 |
+                     XDMAC_CC_SAM_FIXED_AM |
+                     XDMAC_CC_DAM_INCREMENTED_AM |
+                     XDMAC_CC_PERID(PERID_FLEXCOM0_RX);
   FSPID0.txdmamode = XDMAC_CC_TYPE_PER_TRAN |
-                        XDMAC_CC_MBSIZE_SINGLE |
-                        XDMAC_CC_DSYNC_MEM2PER |
-                        XDMAC_CC_PROT_SEC |
-                        XDMAC_CC_CSIZE_CHK_1 |
-                        XDMAC_CC_DWIDTH_BYTE |
-                        XDMAC_CC_SIF_AHB_IF0 |
-                        XDMAC_CC_DIF_AHB_IF1 |
-                        XDMAC_CC_SAM_INCREMENTED_AM |
-                        XDMAC_CC_DAM_FIXED_AM |
-                        XDMAC_CC_PERID(PERID_FLEXCOM0_TX);
+                     XDMAC_CC_MBSIZE_SIXTEEN |
+                     XDMAC_CC_DSYNC_MEM2PER |
+                     XDMAC_CC_PROT_SEC |
+                     XDMAC_CC_CSIZE_CHK_1 |
+                     XDMAC_CC_DWIDTH_BYTE |
+                     XDMAC_CC_SIF_AHB_IF0 |
+                     XDMAC_CC_DIF_AHB_IF1 |
+                     XDMAC_CC_SAM_INCREMENTED_AM |
+                     XDMAC_CC_DAM_FIXED_AM |
+                     XDMAC_CC_PERID(PERID_FLEXCOM0_TX);
 #endif /* SAMA_SPI_USE_FLEXCOM0 */
 
 #if SAMA_SPI_USE_FLEXCOM1
+#if SAMA_HAL_IS_SECURE
+  mtxConfigPeriphSecurity(MATRIX1, ID_FLEXCOM1, SECURE_PER);
+#endif /* SAMA_HAL_IS_SECURE */
   /* Driver initialization.*/
   spiObjectInit(&FSPID1);
   FSPID1.spi       = FCOMSPI1;
@@ -281,30 +293,33 @@ void spi_lld_init(void) {
   FSPID1.dmarx     = NULL;
   FSPID1.dmatx     = NULL;
   FSPID1.rxdmamode = XDMAC_CC_TYPE_PER_TRAN |
-                        XDMAC_CC_MBSIZE_SINGLE |
-                        XDMAC_CC_DSYNC_PER2MEM |
-                        XDMAC_CC_PROT_SEC |
-                        XDMAC_CC_CSIZE_CHK_1 |
-                        XDMAC_CC_DWIDTH_BYTE |
-                        XDMAC_CC_SIF_AHB_IF1 |
-                        XDMAC_CC_DIF_AHB_IF0 |
-                        XDMAC_CC_SAM_FIXED_AM |
-                        XDMAC_CC_DAM_INCREMENTED_AM |
-                        XDMAC_CC_PERID(PERID_FLEXCOM1_RX);
+                     XDMAC_CC_MBSIZE_SIXTEEN |
+                     XDMAC_CC_DSYNC_PER2MEM |
+                     XDMAC_CC_PROT_SEC |
+                     XDMAC_CC_CSIZE_CHK_1 |
+                     XDMAC_CC_DWIDTH_BYTE |
+                     XDMAC_CC_SIF_AHB_IF1 |
+                     XDMAC_CC_DIF_AHB_IF0 |
+                     XDMAC_CC_SAM_FIXED_AM |
+                     XDMAC_CC_DAM_INCREMENTED_AM |
+                     XDMAC_CC_PERID(PERID_FLEXCOM1_RX);
   FSPID1.txdmamode = XDMAC_CC_TYPE_PER_TRAN |
-                        XDMAC_CC_MBSIZE_SINGLE |
-                        XDMAC_CC_DSYNC_MEM2PER |
-                        XDMAC_CC_PROT_SEC |
-                        XDMAC_CC_CSIZE_CHK_1 |
-                        XDMAC_CC_DWIDTH_BYTE |
-                        XDMAC_CC_SIF_AHB_IF0 |
-                        XDMAC_CC_DIF_AHB_IF1 |
-                        XDMAC_CC_SAM_INCREMENTED_AM |
-                        XDMAC_CC_DAM_FIXED_AM |
-                        XDMAC_CC_PERID(PERID_FLEXCOM1_TX);
+                     XDMAC_CC_MBSIZE_SIXTEEN |
+                     XDMAC_CC_DSYNC_MEM2PER |
+                     XDMAC_CC_PROT_SEC |
+                     XDMAC_CC_CSIZE_CHK_1 |
+                     XDMAC_CC_DWIDTH_BYTE |
+                     XDMAC_CC_SIF_AHB_IF0 |
+                     XDMAC_CC_DIF_AHB_IF1 |
+                     XDMAC_CC_SAM_INCREMENTED_AM |
+                     XDMAC_CC_DAM_FIXED_AM |
+                     XDMAC_CC_PERID(PERID_FLEXCOM1_TX);
 #endif /* SAMA_SPI_USE_FLEXCOM1 */
 
 #if SAMA_SPI_USE_FLEXCOM2
+#if SAMA_HAL_IS_SECURE
+  mtxConfigPeriphSecurity(MATRIX1, ID_FLEXCOM2, SECURE_PER);
+#endif /* SAMA_HAL_IS_SECURE */
   /* Driver initialization.*/
   spiObjectInit(&FSPID2);
   FSPID2.spi       = FCOMSPI2;
@@ -312,30 +327,33 @@ void spi_lld_init(void) {
   FSPID2.dmarx     = NULL;
   FSPID2.dmatx     = NULL;
   FSPID2.rxdmamode = XDMAC_CC_TYPE_PER_TRAN |
-                        XDMAC_CC_MBSIZE_SINGLE |
-                        XDMAC_CC_DSYNC_PER2MEM |
-                        XDMAC_CC_PROT_SEC |
-                        XDMAC_CC_CSIZE_CHK_1 |
-                        XDMAC_CC_DWIDTH_BYTE |
-                        XDMAC_CC_SIF_AHB_IF1 |
-                        XDMAC_CC_DIF_AHB_IF0 |
-                        XDMAC_CC_SAM_FIXED_AM |
-                        XDMAC_CC_DAM_INCREMENTED_AM |
-                        XDMAC_CC_PERID(PERID_FLEXCOM2_RX);
+                     XDMAC_CC_MBSIZE_SIXTEEN |
+                     XDMAC_CC_DSYNC_PER2MEM |
+                     XDMAC_CC_PROT_SEC |
+                     XDMAC_CC_CSIZE_CHK_1 |
+                     XDMAC_CC_DWIDTH_BYTE |
+                     XDMAC_CC_SIF_AHB_IF1 |
+                     XDMAC_CC_DIF_AHB_IF0 |
+                     XDMAC_CC_SAM_FIXED_AM |
+                     XDMAC_CC_DAM_INCREMENTED_AM |
+                     XDMAC_CC_PERID(PERID_FLEXCOM2_RX);
   FSPID2.txdmamode = XDMAC_CC_TYPE_PER_TRAN |
-                        XDMAC_CC_MBSIZE_SINGLE |
-                        XDMAC_CC_DSYNC_MEM2PER |
-                        XDMAC_CC_PROT_SEC |
-                        XDMAC_CC_CSIZE_CHK_1 |
-                        XDMAC_CC_DWIDTH_BYTE |
-                        XDMAC_CC_SIF_AHB_IF0 |
-                        XDMAC_CC_DIF_AHB_IF1 |
-                        XDMAC_CC_SAM_INCREMENTED_AM |
-                        XDMAC_CC_DAM_FIXED_AM |
-                        XDMAC_CC_PERID(PERID_FLEXCOM2_TX);
+                     XDMAC_CC_MBSIZE_SIXTEEN |
+                     XDMAC_CC_DSYNC_MEM2PER |
+                     XDMAC_CC_PROT_SEC |
+                     XDMAC_CC_CSIZE_CHK_1 |
+                     XDMAC_CC_DWIDTH_BYTE |
+                     XDMAC_CC_SIF_AHB_IF0 |
+                     XDMAC_CC_DIF_AHB_IF1 |
+                     XDMAC_CC_SAM_INCREMENTED_AM |
+                     XDMAC_CC_DAM_FIXED_AM |
+                     XDMAC_CC_PERID(PERID_FLEXCOM2_TX);
 #endif /* SAMA_SPI_USE_FLEXCOM2 */
 
 #if SAMA_SPI_USE_FLEXCOM3
+#if SAMA_HAL_IS_SECURE
+  mtxConfigPeriphSecurity(MATRIX1, ID_FLEXCOM3, SECURE_PER);
+#endif /* SAMA_HAL_IS_SECURE */
   /* Driver initialization.*/
   spiObjectInit(&FSPID3);
   FSPID3.spi       = FCOMSPI3;
@@ -343,30 +361,33 @@ void spi_lld_init(void) {
   FSPID3.dmarx     = NULL;
   FSPID3.dmatx     = NULL;
   FSPID3.rxdmamode = XDMAC_CC_TYPE_PER_TRAN |
-                        XDMAC_CC_MBSIZE_SINGLE |
-                        XDMAC_CC_DSYNC_PER2MEM |
-                        XDMAC_CC_PROT_SEC |
-                        XDMAC_CC_CSIZE_CHK_1 |
-                        XDMAC_CC_DWIDTH_BYTE |
-                        XDMAC_CC_SIF_AHB_IF1 |
-                        XDMAC_CC_DIF_AHB_IF0 |
-                        XDMAC_CC_SAM_FIXED_AM |
-                        XDMAC_CC_DAM_INCREMENTED_AM |
-                        XDMAC_CC_PERID(PERID_FLEXCOM3_RX);
+                     XDMAC_CC_MBSIZE_SIXTEEN |
+                     XDMAC_CC_DSYNC_PER2MEM |
+                     XDMAC_CC_PROT_SEC |
+                     XDMAC_CC_CSIZE_CHK_1 |
+                     XDMAC_CC_DWIDTH_BYTE |
+                     XDMAC_CC_SIF_AHB_IF1 |
+                     XDMAC_CC_DIF_AHB_IF0 |
+                     XDMAC_CC_SAM_FIXED_AM |
+                     XDMAC_CC_DAM_INCREMENTED_AM |
+                     XDMAC_CC_PERID(PERID_FLEXCOM3_RX);
   FSPID3.txdmamode = XDMAC_CC_TYPE_PER_TRAN |
-                        XDMAC_CC_MBSIZE_SINGLE |
-                        XDMAC_CC_DSYNC_MEM2PER |
-                        XDMAC_CC_PROT_SEC |
-                        XDMAC_CC_CSIZE_CHK_1 |
-                        XDMAC_CC_DWIDTH_BYTE |
-                        XDMAC_CC_SIF_AHB_IF0 |
-                        XDMAC_CC_DIF_AHB_IF1 |
-                        XDMAC_CC_SAM_INCREMENTED_AM |
-                        XDMAC_CC_DAM_FIXED_AM |
-                        XDMAC_CC_PERID(PERID_FLEXCOM3_TX);
+                     XDMAC_CC_MBSIZE_SIXTEEN |
+                     XDMAC_CC_DSYNC_MEM2PER |
+                     XDMAC_CC_PROT_SEC |
+                     XDMAC_CC_CSIZE_CHK_1 |
+                     XDMAC_CC_DWIDTH_BYTE |
+                     XDMAC_CC_SIF_AHB_IF0 |
+                     XDMAC_CC_DIF_AHB_IF1 |
+                     XDMAC_CC_SAM_INCREMENTED_AM |
+                     XDMAC_CC_DAM_FIXED_AM |
+                     XDMAC_CC_PERID(PERID_FLEXCOM3_TX);
 #endif /* SAMA_SPI_USE_FLEXCOM3 */
 
 #if SAMA_SPI_USE_FLEXCOM4
+#if SAMA_HAL_IS_SECURE
+  mtxConfigPeriphSecurity(MATRIX1, ID_FLEXCOM4, SECURE_PER);
+#endif /* SAMA_HAL_IS_SECURE */
   /* Driver initialization.*/
   spiObjectInit(&FSPID4);
   FSPID4.spi       = FCOMSPI4;
@@ -374,27 +395,27 @@ void spi_lld_init(void) {
   FSPID4.dmarx     = NULL;
   FSPID4.dmatx     = NULL;
   FSPID4.rxdmamode = XDMAC_CC_TYPE_PER_TRAN |
-                        XDMAC_CC_MBSIZE_SINGLE |
-                        XDMAC_CC_DSYNC_PER2MEM |
-                        XDMAC_CC_PROT_SEC |
-                        XDMAC_CC_CSIZE_CHK_1 |
-                        XDMAC_CC_DWIDTH_BYTE |
-                        XDMAC_CC_SIF_AHB_IF1 |
-                        XDMAC_CC_DIF_AHB_IF0 |
-                        XDMAC_CC_SAM_FIXED_AM |
-                        XDMAC_CC_DAM_INCREMENTED_AM |
-                        XDMAC_CC_PERID(PERID_FLEXCOM4_RX);
+                     XDMAC_CC_MBSIZE_SIXTEEN |
+                     XDMAC_CC_DSYNC_PER2MEM |
+                     XDMAC_CC_PROT_SEC |
+                     XDMAC_CC_CSIZE_CHK_1 |
+                     XDMAC_CC_DWIDTH_BYTE |
+                     XDMAC_CC_SIF_AHB_IF1 |
+                     XDMAC_CC_DIF_AHB_IF0 |
+                     XDMAC_CC_SAM_FIXED_AM |
+                     XDMAC_CC_DAM_INCREMENTED_AM |
+                     XDMAC_CC_PERID(PERID_FLEXCOM4_RX);
   FSPID4.txdmamode = XDMAC_CC_TYPE_PER_TRAN |
-                        XDMAC_CC_MBSIZE_SINGLE |
-                        XDMAC_CC_DSYNC_MEM2PER |
-                        XDMAC_CC_PROT_SEC |
-                        XDMAC_CC_CSIZE_CHK_1 |
-                        XDMAC_CC_DWIDTH_BYTE |
-                        XDMAC_CC_SIF_AHB_IF0 |
-                        XDMAC_CC_DIF_AHB_IF1 |
-                        XDMAC_CC_SAM_INCREMENTED_AM |
-                        XDMAC_CC_DAM_FIXED_AM |
-                        XDMAC_CC_PERID(PERID_FLEXCOM4_TX);
+                     XDMAC_CC_MBSIZE_SIXTEEN |
+                     XDMAC_CC_DSYNC_MEM2PER |
+                     XDMAC_CC_PROT_SEC |
+                     XDMAC_CC_CSIZE_CHK_1 |
+                     XDMAC_CC_DWIDTH_BYTE |
+                     XDMAC_CC_SIF_AHB_IF0 |
+                     XDMAC_CC_DIF_AHB_IF1 |
+                     XDMAC_CC_SAM_INCREMENTED_AM |
+                     XDMAC_CC_DAM_FIXED_AM |
+                     XDMAC_CC_PERID(PERID_FLEXCOM4_TX);
 #endif /* SAMA_SPI_USE_FLEXCOM4 */
 }
 
@@ -452,7 +473,7 @@ void spi_lld_start(SPIDriver *spip) {
                                        (sama_dmaisr_t)spi_lld_serve_tx_interrupt,
                                        (void *)spip);
       osalDbgAssert(spip->dmatx != NULL, "no channel allocated");
-    /* Enabling USART on FLEXCOM */
+    /* Enabling SPI on FLEXCOM */
       spip->flexcom->FLEX_MR = FLEX_MR_OPMODE_SPI;
     /* Enable FLEXCOM0 clock */
       pmcEnableFLEXCOM0();
@@ -469,7 +490,7 @@ void spi_lld_start(SPIDriver *spip) {
                                        (sama_dmaisr_t)spi_lld_serve_tx_interrupt,
                                        (void *)spip);
       osalDbgAssert(spip->dmatx != NULL, "no channel allocated");
-    /* Enabling USART on FLEXCOM */
+    /* Enabling SPI on FLEXCOM */
       spip->flexcom->FLEX_MR = FLEX_MR_OPMODE_SPI;
     /* Enable FLEXCOM1 clock */
       pmcEnableFLEXCOM1();
@@ -486,7 +507,7 @@ void spi_lld_start(SPIDriver *spip) {
                                        (sama_dmaisr_t)spi_lld_serve_tx_interrupt,
                                        (void *)spip);
       osalDbgAssert(spip->dmatx != NULL, "no channel allocated");
-    /* Enabling USART on FLEXCOM */
+    /* Enabling SPI on FLEXCOM */
       spip->flexcom->FLEX_MR = FLEX_MR_OPMODE_SPI;
     /* Enable FLEXCOM2 clock */
       pmcEnableFLEXCOM2();
@@ -503,7 +524,7 @@ void spi_lld_start(SPIDriver *spip) {
                                        (sama_dmaisr_t)spi_lld_serve_tx_interrupt,
                                        (void *)spip);
       osalDbgAssert(spip->dmatx != NULL, "no channel allocated");
-    /* Enabling USART on FLEXCOM */
+    /* Enabling SPI on FLEXCOM */
       spip->flexcom->FLEX_MR = FLEX_MR_OPMODE_SPI;
     /* Enable FLEXCOM3 clock */
       pmcEnableFLEXCOM3();
@@ -520,7 +541,7 @@ void spi_lld_start(SPIDriver *spip) {
                                        (sama_dmaisr_t)spi_lld_serve_tx_interrupt,
                                        (void *)spip);
       osalDbgAssert(spip->dmatx != NULL, "no channel allocated");
-    /* Enabling USART on FLEXCOM */
+    /* Enabling SPI on FLEXCOM */
       spip->flexcom->FLEX_MR = FLEX_MR_OPMODE_SPI;
     /* Enable FLEXCOM4 clock */
       pmcEnableFLEXCOM4();
@@ -540,7 +561,7 @@ void spi_lld_start(SPIDriver *spip) {
   spip->spi->SPI_CR = SPI_CR_SWRST;
 
   /* SPI configuration */
-  spip->spi->SPI_MR = SPI_MR_MSTR | spip->config->mr;
+  spip->spi->SPI_MR = SPI_MR_MSTR | SPI_MR_WDRBT | spip->config->mr;
   spip->spi->SPI_MR &= ~SPI_MR_PCS_Msk;
   spip->spi->SPI_MR |=  SPI_PCS(spip->config->npcs);
   spip->spi->SPI_CSR[spip->config->npcs] = spip->config->csr;
@@ -576,6 +597,9 @@ void spi_lld_stop(SPIDriver *spip) {
     spip->spi->SPI_CR |= SPI_CR_SPIDIS;
   /* Enable write protection */
     spiEnableWP(spip->spi);
+	
+    dmaChannelRelease(spip->dmarx);
+    dmaChannelRelease(spip->dmatx);
 
 #if SAMA_SPI_USE_SPI0
     if (&SPID0 == spip)
@@ -752,3 +776,4 @@ void spi_lld_receive(SPIDriver *spip, size_t n, void *rxbuf) {
 #endif /* HAL_USE_SPI */
 
 /** @} */
+

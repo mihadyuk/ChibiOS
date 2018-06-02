@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@
  */
 #define pmcEnablePidLow(mask) {                                             \
   pmcDisableWP();                                                           \
-  PMC->PMC_PCER0 |= (mask);                                                 \
+  PMC->PMC_PCER0 = (mask);                                                  \
   pmcEnableWP();                                                            \
 }
 
@@ -91,7 +91,7 @@
  */
 #define pmcDisablePidLow(mask) {                                            \
   pmcDisableWP();                                                           \
-  PMC->PMC_PCDR0 |= (mask);                                                 \
+  PMC->PMC_PCDR0 = (mask);                                                  \
   pmcEnableWP();                                                            \
 }
 
@@ -105,7 +105,7 @@
  */
 #define pmcEnablePidHigh(mask) {                                            \
   pmcDisableWP();                                                           \
-  PMC->PMC_PCER1 |= (mask);                                                 \
+  PMC->PMC_PCER1 = (mask);                                                  \
   pmcEnableWP();                                                            \
 }
 
@@ -119,7 +119,7 @@
  */
 #define pmcDisablePidHigh(mask) {                                           \
   pmcDisableWP();                                                           \
-  PMC->PMC_PCDR1 |= (mask);                                                 \
+  PMC->PMC_PCDR1 = (mask);                                                  \
   pmcEnableWP();                                                            \
 }
 /** @} */
@@ -379,6 +379,158 @@
  * @api
  */
 #define pmcDisableFLEXCOM4() pmcDisablePidLow(ID_FLEXCOM4_MSK)
+
+/**
+ * @brief   Enables the TC0 peripheral clock.
+ *
+ * @api
+ */
+#define pmcEnableTC0() pmcEnablePidHigh(ID_TC0_MSK)
+
+/**
+ * @brief   Disables the TC0 peripheral clock.
+ *
+ * @api
+ */
+#define pmcDisableTC0() pmcDisablePidHigh(ID_TC0_MSK)
+
+/**
+ * @brief   Enables the TC1 peripheral clock.
+ *
+ * @api
+ */
+#define pmcEnableTC1() pmcEnablePidHigh(ID_TC1_MSK)
+
+/**
+ * @brief   Disables the TC1 peripheral clock.
+ *
+ * @api
+ */
+#define pmcDisableTC1() pmcDisablePidHigh(ID_TC1_MSK)
+
+
+/**
+ * @brief   Enables the AES peripheral clock.
+ *
+ * @api
+ */
+#define pmcEnableAES() 	pmcEnablePidLow(ID_AES_MSK)
+
+/**
+ * @brief   Disables the AES peripheral clock.
+ *
+ * @api
+ */
+#define pmcDisableAES() pmcDisablePidLow(ID_AES_MSK)
+
+/**
+ * @brief   Enables the TRNG peripheral clock.
+ *
+ * @api
+ */
+#define pmcEnableTRNG()	pmcEnablePidHigh(ID_TRNG_MSK)
+/**
+ * @brief   Disables the TRNG peripheral clock.
+ *
+ * @api
+ */
+#define pmcDisableTRNG() pmcDisablePidHigh(ID_TRNG_MSK)
+
+/**
+ * @brief   Enables the DES peripheral clock.
+ *
+ * @api
+ */
+#define pmcEnableDES()	pmcEnablePidLow(ID_TDES_MSK)
+/**
+ * @brief   Disables the DES peripheral clock.
+ *
+ * @api
+ */
+#define pmcDisableDES() pmcDisablePidLow(ID_TDES_MSK)
+
+/**
+ * @brief   Enables the SHA peripheral clock.
+ *
+ * @api
+ */
+#define pmcEnableSHA()	pmcEnablePidLow(ID_SHA_MSK)
+/**
+ * @brief   Disables the SHA peripheral clock.
+ *
+ * @api
+ */
+#define pmcDisableSHA() pmcDisablePidLow(ID_SHA_MSK)
+
+/**
+ * @brief   Enables the ETH0 peripheral clock.
+ *
+ * @api
+ */
+#define pmcEnableETH0() pmcEnablePidLow(ID_GMAC0_MSK)
+
+/**
+ * @brief   Disables the ETH0 peripheral clock.
+ *
+ * @api
+ */
+#define pmcDisableETH0() pmcDisablePidLow(ID_GMAC0_MSK)
+
+/**
+ * @brief   Enables the SECUMOD peripheral clock.
+ *
+ * @api
+ */
+#define pmcEnableSEC() pmcEnablePidLow(ID_SECUMOD_MSK)
+
+/**
+ * @brief   Disables the SECUMOD peripheral clock.
+ *
+ * @api
+ */
+#define pmcDisableSEC() pmcDisablePidLow(ID_SECUMOD_MSK)
+
+/**
+ * @brief   Enables the SDMMC0 peripheral clock.
+ *
+ * @api
+ */
+#define pmcEnableSDMMC0() 	pmcEnablePidLow(ID_SDMMC0_MSK)
+
+/**
+ * @brief   Disables the SDMMC0 peripheral clock.
+ *
+ * @api
+ */
+#define pmcDisableSDMMC0() pmcDisablePidLow(ID_SDMMC0_MSK)
+
+/**
+ * @brief   Enables the SDMMC1 peripheral clock.
+ *
+ * @api
+ */
+#define pmcEnableSDMMC1() 	pmcEnablePidHigh(ID_SDMMC1_MSK)
+
+/**
+ * @brief   Disables the SDMMC1 peripheral clock.
+ *
+ * @api
+ */
+#define pmcDisableSDMMC1() pmcDisablePidHigh(ID_SDMMC1_MSK)
+
+/**
+ * @brief   Enables the TRNG peripheral clock.
+ *
+ * @api
+ */
+#define pmcEnableTRNG0()   pmcEnablePidHigh(ID_TRNG_MSK)
+
+/**
+ * @brief   Disables the TRNG peripheral clock.
+ *
+ * @api
+ */
+#define pmcDisableTRNG0() pmcDisablePidHigh(ID_TRNG_MSK)
 
 /** @} */
 

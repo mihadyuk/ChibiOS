@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -82,11 +82,15 @@
 /**
  * @brief   Address of the IRQ vector register in the interrupt controller.
  */
-#define ARM_IRQ_VECTOR_REG      0xF803C010U
+#define ARM_IRQ_VECTOR_REG      0xFC020010U
 #else
-#define ARM_IRQ_VECTOR_REG      0xF803C010
-
+#define ARM_IRQ_VECTOR_REG      0xFC020010
 #endif
+
+#define ARM_ENABLE_WFI_IDLE     FALSE
+
+#define ARM_SUPPORTS_L2CC       1
+
 #endif /* ARMPARAMS_H */
 
 /** @} */

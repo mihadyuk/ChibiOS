@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -18,7 +18,7 @@
 */
 
 /**
- * @file    AVR/chcore.c
+ * @file    chcore.c
  * @brief   AVR architecture port code.
  *
  * @addtogroup AVR_CORE

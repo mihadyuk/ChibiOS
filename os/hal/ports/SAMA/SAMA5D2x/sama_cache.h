@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@
 /* Driver constants.                                                         */
 /*===========================================================================*/
 #define L1_CACHE_BYTES  32u
+#define L2_CACHE_BYTES  32u
 
 #ifdef __cplusplus
 extern "C" {

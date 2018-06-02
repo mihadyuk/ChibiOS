@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -145,8 +145,8 @@
 /**
  * @brief   Host wake-up procedure duration.
  */
-#if !defined(USB_HOST_WAKEUP_DURATION) || defined(__DOXYGEN__)
-#define USB_HOST_WAKEUP_DURATION            2
+#if !defined(STM32_USB_HOST_WAKEUP_DURATION) || defined(__DOXYGEN__)
+#define STM32_USB_HOST_WAKEUP_DURATION      2
 #endif
 
 /*===========================================================================*/
@@ -241,6 +241,16 @@
 #define STM32_USBCLK                        STM32_OTGFSCLK
 #elif defined(STM32L4XX)
 #define STM32_USBCLK                        STM32_48CLK
+#elif  defined(STM32H7XX)
+/* Defines directly STM32_USBCLK.*/
+#define rccEnableOTG_FS                     rccEnableUSB2_OTG_HS
+#define rccDisableOTG_FS                    rccDisableUSB2_OTG_HS
+#define rccResetOTG_FS                      rccResetUSB2_OTG_HS
+#define rccEnableOTG_HS                     rccEnableUSB1_OTG_HS
+#define rccDisableOTG_HS                    rccDisableUSB1_OTG_HS
+#define rccResetOTG_HS                      rccResetUSB1_OTG_HS
+#define rccEnableOTG_HSULPI                 rccEnableUSB1_HSULPI
+#define rccDisableOTG_HSULPI                rccDisableUSB1_HSULPI
 #else
 #error "unsupported STM32 platform for OTG functionality"
 #endif
@@ -249,8 +259,8 @@
 #error "the USB OTG driver requires a 48MHz clock"
 #endif
 
-#if (USB_HOST_WAKEUP_DURATION < 2) || (USB_HOST_WAKEUP_DURATION > 15)
-#error "invalid USB_HOST_WAKEUP_DURATION setting, it must be between 2 and 15"
+#if (STM32_USB_HOST_WAKEUP_DURATION < 2) || (STM32_USB_HOST_WAKEUP_DURATION > 15)
+#error "invalid STM32_USB_HOST_WAKEUP_DURATION setting, it must be between 2 and 15"
 #endif
 
 /*===========================================================================*/
@@ -508,6 +518,7 @@ struct USBDriver {
    * @brief   Pointer to the next address in the packet memory.
    */
   uint32_t                      pmnext;
+#if 0
   /**
    * @brief   Mask of TXFIFOs to be filled by the pump thread.
    */
@@ -525,6 +536,7 @@ struct USBDriver {
    * @brief   Working area for the dedicated data pump thread;
    */
   THD_WORKING_AREA(wa_pump, STM32_USB_OTG_THREAD_STACK_SIZE);
+#endif
 #endif
 };
 
@@ -579,7 +591,7 @@ struct USBDriver {
 #define usb_lld_wakeup_host(usbp)                                           \
   do{                                                                       \
     (usbp)->otg->DCTL |= DCTL_RWUSIG;                                       \
-    osalThreadSleepMilliseconds(USB_HOST_WAKEUP_DURATION);                  \
+    osalThreadSleepMilliseconds(STM32_USB_HOST_WAKEUP_DURATION);            \
     (usbp)->otg->DCTL &= ~DCTL_RWUSIG;                                      \
   } while (false)
 
@@ -614,7 +626,6 @@ extern "C" {
   void usb_lld_stall_in(USBDriver *usbp, usbep_t ep);
   void usb_lld_clear_out(USBDriver *usbp, usbep_t ep);
   void usb_lld_clear_in(USBDriver *usbp, usbep_t ep);
-  void usb_lld_pump(void *p);
 #ifdef __cplusplus
 }
 #endif

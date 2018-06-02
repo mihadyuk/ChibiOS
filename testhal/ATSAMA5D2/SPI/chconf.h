@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -49,7 +49,20 @@
  * @details Frequency of the system timer that drives the system ticks. This
  *          setting also defines the system tick time unit.
  */
-#define CH_CFG_ST_FREQUENCY                 1000
+#define CH_CFG_ST_FREQUENCY                 1000              /* periodic tick. */
+//#define CH_CFG_ST_FREQUENCY                 (83000000 / 32) /* tick-less. */
+
+/**
+ * @brief   Time intervals data size.
+ * @note    Allowed values are 16, 32 or 64 bits.
+ */
+#define CH_CFG_INTERVALS_SIZE               32
+
+/**
+ * @brief   Time types data size.
+ * @note    Allowed values are 16 or 32 bits.
+ */
+#define CH_CFG_TIME_TYPES_SIZE              32
 
 /**
  * @brief   Time delta constant for the tick-less mode.
@@ -455,7 +468,7 @@
  * @note    This debug option is not currently compatible with the
  *          tickless mode.
  */
-#define CH_DBG_THREADS_PROFILING            TRUE
+#define CH_DBG_THREADS_PROFILING            FALSE
 
 /** @} */
 
@@ -467,6 +480,22 @@
 /*===========================================================================*/
 
 /**
+ * @brief   System structure extension.
+ * @details User fields added to the end of the @p ch_system_t structure.
+ */
+#define CH_CFG_SYSTEM_EXTRA_FIELDS                                          \
+  /* Add threads custom fields here.*/
+
+/**
+ * @brief   System initialization hook.
+ * @details User initialization code added to the @p chSysInit() function
+ *          just before interrupts are enabled globally.
+ */
+#define CH_CFG_SYSTEM_INIT_HOOK(tp) {                                       \
+  /* Add threads initialization code here.*/                                \
+}
+
+/**
  * @brief   Threads descriptor structure extension.
  * @details User fields added to the end of the @p thread_t structure.
  */
@@ -475,9 +504,9 @@
 
 /**
  * @brief   Threads initialization hook.
- * @details User initialization code added to the @p chThdInit() API.
+ * @details User initialization code added to the @p _thread_init() function.
  *
- * @note    It is invoked from within @p chThdInit() and implicitly from all
+ * @note    It is invoked from within @p _thread_init() and implicitly from all
  *          the threads creation APIs.
  */
 #define CH_CFG_THREAD_INIT_HOOK(tp) {                                       \
@@ -574,13 +603,6 @@
 /*===========================================================================*/
 /* Port-specific settings (override port settings defaulted in chcore.h).    */
 /*===========================================================================*/
-
-/**
- * @brief   Trust zone configuration.
- * @details If enabled the kernel is configured for the secure world
- *          and can access specific devices.
- */
-#define CH_CFG_SEC_WORLD                    TRUE
 
 #endif  /* CHCONF_H */
 

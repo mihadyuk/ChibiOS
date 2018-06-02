@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -129,7 +129,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
   MACTransmitDescriptor td;
 
   (void)netif;
-  if (macWaitTransmitDescriptor(&ETHD1, &td, MS2ST(LWIP_SEND_TIMEOUT)) != MSG_OK)
+  if (macWaitTransmitDescriptor(&ETHD1, &td, TIME_MS2I(LWIP_SEND_TIMEOUT)) != MSG_OK)
     return ERR_TIMEOUT;
 
 #if ETH_PAD_SIZE

@@ -80,6 +80,9 @@ endif
 ifneq ($(findstring HAL_USE_WDG TRUE,$(HALCONF)),)
 HALSRC += $(CHIBIOS)/os/hal/src/hal_wdg.c
 endif
+ifneq ($(findstring HAL_USE_WSPI TRUE,$(HALCONF)),)
+HALSRC += $(CHIBIOS)/os/hal/src/hal_wspi.c
+endif
 else
 HALSRC = $(CHIBIOS)/os/hal/src/hal.c \
          $(CHIBIOS)/os/hal/src/hal_buffers.c \
@@ -87,6 +90,7 @@ HALSRC = $(CHIBIOS)/os/hal/src/hal.c \
          $(CHIBIOS)/os/hal/src/hal_mmcsd.c \
          $(CHIBIOS)/os/hal/src/hal_adc.c \
          $(CHIBIOS)/os/hal/src/hal_can.c \
+         $(CHIBIOS)/os/hal/src/hal_crypto.c \
          $(CHIBIOS)/os/hal/src/hal_dac.c \
          $(CHIBIOS)/os/hal/src/hal_ext.c \
          $(CHIBIOS)/os/hal/src/hal_gpt.c \
@@ -106,8 +110,13 @@ HALSRC = $(CHIBIOS)/os/hal/src/hal.c \
          $(CHIBIOS)/os/hal/src/hal_st.c \
          $(CHIBIOS)/os/hal/src/hal_uart.c \
          $(CHIBIOS)/os/hal/src/hal_usb.c \
-         $(CHIBIOS)/os/hal/src/hal_wdg.c
+         $(CHIBIOS)/os/hal/src/hal_wdg.c \
+         $(CHIBIOS)/os/hal/src/hal_wspi.c
 endif
 
 # Required include directories
 HALINC = $(CHIBIOS)/os/hal/include
+
+# Shared variables
+ALLCSRC += $(HALSRC)
+ALLINC  += $(HALINC)

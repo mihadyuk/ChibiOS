@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ static void hal_lld_backup_domain_init(void) {
 #endif /* HAL_USE_RTC */
 
 #if STM32_BKPRAM_ENABLE
-  rccEnableBKPSRAM(false);
+  rccEnableBKPSRAM(true);
 
   PWR->CSR |= PWR_CSR_BRE;
   while ((PWR->CSR & PWR_CSR_BRR) == 0)
@@ -114,9 +114,10 @@ static void hal_lld_backup_domain_init(void) {
 void hal_lld_init(void) {
 
   /* Reset of all peripherals. AHB3 is not reseted because it could have
-     been initialized in the board initialization file (board.c) and AHB2 is not
-     present in STM32F410. */
-  rccResetAHB1(~0);
+     been initialized in the board initialization file (board.c).
+     Note, GPIOs are not reset because initialized before this point in
+     board files.*/
+  rccResetAHB1(~STM32_GPIO_EN_MASK);
 #if !defined(STM32F410xx)
   rccResetAHB2(~0);
 #endif
@@ -124,7 +125,7 @@ void hal_lld_init(void) {
   rccResetAPB2(~0);
 
   /* PWR clock enabled.*/
-  rccEnablePWRInterface(FALSE);
+  rccEnablePWRInterface(true);
 
   /* Initializes the backup domain.*/
   hal_lld_backup_domain_init();
@@ -176,8 +177,7 @@ void stm32_clock_init(void) {
   /* HSI is selected as new source without touching the other fields in
      CFGR. Clearing the register has to be postponed after HSI is the
      new source.*/
-  RCC->CFGR &= ~RCC_CFGR_SW;                /* Reset SW */
-  RCC->CFGR |= RCC_CFGR_SWS_HSI;            /* Select HSI as internal*/
+  RCC->CFGR &= ~RCC_CFGR_SW;                /* Reset SW, selecting HSI.     */
   while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI)
     ;                                       /* Wait until HSI is selected.  */
 
@@ -236,7 +236,7 @@ void stm32_clock_init(void) {
 #if STM32_ACTIVATE_PLLI2S
   /* PLLI2S activation.*/
   RCC->PLLI2SCFGR = STM32_PLLI2SR | STM32_PLLI2SN | STM32_PLLI2SP |
-                    STM32_PLLI2SQ | STM32_PLLI2SM;
+                    STM32_PLLI2SSRC | STM32_PLLI2SQ | STM32_PLLI2SM;
   RCC->CR |= RCC_CR_PLLI2SON;
 
   /* Waiting for PLL lock.*/
@@ -256,11 +256,17 @@ void stm32_clock_init(void) {
 #endif /* STM32_ACTIVATE_PLLSAI */
 
   /* Other clock-related settings (dividers, MCO etc).*/
+#if !defined(STM32F413xx)
   RCC->CFGR = STM32_MCO2PRE | STM32_MCO2SEL | STM32_MCO1PRE | STM32_MCO1SEL |
               STM32_I2SSRC | STM32_RTCPRE | STM32_PPRE2 | STM32_PPRE1 |
               STM32_HPRE;
+#else
+  RCC->CFGR = STM32_MCO2PRE | STM32_MCO2SEL | STM32_MCO1PRE | STM32_MCO1SEL |
+                              STM32_RTCPRE | STM32_PPRE2 | STM32_PPRE1 |
+              STM32_HPRE;
+#endif
 
-#if defined(STM32F446xx)
+#if STM32_HAS_RCC_DCKCFGR
   /* DCKCFGR register initialization, note, must take care of the _OFF
    pseudo settings.*/
   {
@@ -271,29 +277,30 @@ void stm32_clock_init(void) {
 #if STM32_SAI1SEL != STM32_SAI1SEL_OFF
     dckcfgr |= STM32_SAI1SEL;
 #endif
-#if STM32_PLLSAIDIVR != STM32_PLLSAIDIVR_OFF
+#if (STM32_ACTIVATE_PLLSAI == TRUE) &&                                      \
+    (STM32_PLLSAIDIVR != STM32_PLLSAIDIVR_OFF)
     dckcfgr |= STM32_PLLSAIDIVR;
 #endif
-    RCC->DCKCFGR = dckcfgr | STM32_PLLI2SDIVQ | STM32_PLLSAIDIVQ;
+#if defined(STM32F469xx) || defined(STM32F479xx)
+  /* Special case, in those devices STM32_CK48MSEL is located in the
+     DCKCFGR register.*/
+    dckcfgr |= STM32_CK48MSEL;
+#endif
+#if !defined(STM32F413xx)
+    RCC->DCKCFGR = dckcfgr |
+                   STM32_TIMPRE | STM32_PLLSAIDIVR |
+                   STM32_PLLSAIDIVQ | STM32_PLLI2SDIVQ;
+#else
+    RCC->DCKCFGR = dckcfgr |
+                   STM32_TIMPRE |
+                   STM32_PLLDIVR | STM32_PLLI2SDIVR;
+#endif
   }
+#endif
+
+#if STM32_HAS_RCC_DCKCFGR2
+  /* DCKCFGR2 register initialization.*/
   RCC->DCKCFGR2 = STM32_CK48MSEL;
-#elif defined(STM32F469xx) || defined(STM32F479xx)
-  /* DCKCFGR register initialization, note, must take care of the _OFF
-   pseudo settings.*/
-  {
-    uint32_t dckcfgr = 0;
-  #if STM32_SAI2SEL != STM32_SAI2SEL_OFF
-    dckcfgr |= STM32_SAI2SEL;
-  #endif
-  #if STM32_SAI1SEL != STM32_SAI1SEL_OFF
-    dckcfgr |= STM32_SAI1SEL;
-  #endif
-  #if STM32_PLLSAIDIVR != STM32_PLLSAIDIVR_OFF
-    dckcfgr |= STM32_PLLSAIDIVR;
-  #endif
-    RCC->DCKCFGR = dckcfgr | STM32_PLLI2SDIVQ | STM32_PLLSAIDIVQ | 
-                   STM32_CK48MSEL;
-  }
 #endif
 
   /* Flash setup.*/
@@ -320,7 +327,7 @@ void stm32_clock_init(void) {
 
   /* SYSCFG clock enabled here because it is a multi-functional unit shared
      among multiple drivers.*/
-  rccEnableAPB2(RCC_APB2ENR_SYSCFGEN, TRUE);
+  rccEnableAPB2(RCC_APB2ENR_SYSCFGEN, true);
 }
 
 /** @} */

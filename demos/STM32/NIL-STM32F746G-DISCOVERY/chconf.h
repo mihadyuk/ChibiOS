@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 */
 
 /**
- * @file    chconf.h
+ * @file    templates/chconf.h
  * @brief   Configuration file template.
  * @details A copy of this file must be placed in each project directory, it
  *          contains the application specific kernel settings.
@@ -29,7 +29,7 @@
 #define CHCONF_H
 
 #define _CHIBIOS_NIL_CONF_
-#define _CHIBIOS_NIL_CONF_VER_5_0_
+#define _CHIBIOS_NIL_CONF_VER_3_0_
 
 /*===========================================================================*/
 /**
@@ -58,7 +58,7 @@
  * @brief   System time counter resolution.
  * @note    Allowed values are 16 or 32 bits.
  */
-#define CH_CFG_ST_RESOLUTION                32
+#define CH_CFG_ST_RESOLUTION                16
 
 /**
  * @brief   System tick frequency.
@@ -66,7 +66,7 @@
  *          option defines the maximum amount of time allowed for
  *          timeouts.
  */
-#define CH_CFG_ST_FREQUENCY                 5000
+#define CH_CFG_ST_FREQUENCY                 10000
 
 /**
  * @brief   Time delta constant for the tick-less mode.
@@ -328,8 +328,6 @@
 /*===========================================================================*/
 /* Port-specific settings (override port settings defaulted in nilcore.h).   */
 /*===========================================================================*/
-
-#define CORTEX_VTOR_INIT                    0x00200000U
 
 #endif  /* CHCONF_H */
 

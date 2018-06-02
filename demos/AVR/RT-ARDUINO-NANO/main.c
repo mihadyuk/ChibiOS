@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@
 #include "ch.h"
 #include "hal.h"
 
+/*
+ * LED blinker thread, times are in milliseconds.
+ */
 static THD_WORKING_AREA(waThread1, 32);
 static THD_FUNCTION(Thread1, arg) {
 
@@ -42,8 +45,6 @@ int main(void) {
    */
   halInit();
   chSysInit();
-
-  palClearPad(IOPORT2, PORTB_LED1);
 
   /*
    * Activates the serial driver 1 using the driver default configuration.

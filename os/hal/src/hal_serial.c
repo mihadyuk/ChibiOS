@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -100,18 +100,22 @@ static msg_t _ctl(void *ip, unsigned int operation, void *arg) {
   case CHN_CTL_NOP:
     osalDbgCheck(arg == NULL);
     break;
-  default:
-#if defined(SD_LLD_IMPLEMENTS_CTL)
-    return sd_lld_control(sdp, operation, arg);
-#endif
   case CHN_CTL_INVALID:
     osalDbgAssert(false, "invalid CTL operation");
     break;
+  default:
+#if defined(SD_LLD_IMPLEMENTS_CTL)
+    /* Delegating to the LLD if supported.*/
+    return sd_lld_control(sdp, operation, arg);
+#else
+    break;
+#endif
   }
   return MSG_OK;
 }
 
 static const struct SerialDriverVMT vmt = {
+  (size_t)0,
   _write, _read, _put, _get,
   _putt, _gett, _writet, _readt,
   _ctl

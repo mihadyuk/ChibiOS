@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
  * @file    STM32F7xx/stm32_isr.h
  * @brief   STM32F7xx ISR handler code.
  *
- * @addtogroup SRM32F7xx_ISR
+ * @addtogroup STM32F7xx_ISR
  * @{
  */
 

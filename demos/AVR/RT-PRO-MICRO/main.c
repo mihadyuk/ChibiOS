@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@
 
 SerialUSBDriver SDU1;
 
+/*
+ * LED blinker thread, times are in milliseconds.
+ */
 static THD_WORKING_AREA(waThread1, 32);
 static THD_FUNCTION(Thread1, arg) {
 
@@ -70,7 +73,7 @@ int main(void) {
    */
   chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
 
-  while(TRUE) {
+  while (TRUE) {
     if (SDU1.config->usbp->state == USB_ACTIVE) {
       chnWrite(&SDU1, (const uint8_t *)"Hello World!\r\n", 14);
     }

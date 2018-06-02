@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2017 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -137,7 +137,7 @@ static void rt_test_009_001_execute(void) {
   test_set_step(5);
   {
     threads[2] = chThdCreateFromHeap(&heap1,
-                                     THD_WORKING_AREA_SIZE(THREADS_STACK_SIZE * 1024),
+                                     (((size_t)-1) >> 1U) + 1U,
                                      "dyn3",
                                      prio-3, dyn_thread1, "C");
     test_assert(threads[2] == NULL, "thread creation not failed");

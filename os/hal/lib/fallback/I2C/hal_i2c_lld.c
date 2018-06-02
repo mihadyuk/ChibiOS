@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -241,8 +241,6 @@ static msg_t i2c_read_byte(I2CDriver *i2cp, unsigned nack) {
 
 static msg_t i2c_write_header(I2CDriver *i2cp, i2caddr_t addr, bool rw) {
 
-  CHECK_ERROR(i2c_write_start(i2cp));
-
   /* Check for 10 bits addressing.*/
   if (i2cp->config->addr10) {
     /* It is 10 bits.*/
@@ -358,6 +356,8 @@ msg_t i2c_lld_master_receive_timeout(I2CDriver *i2cp, i2caddr_t addr,
     i2cp->end += timeout;
   }
 
+  CHECK_ERROR(i2c_write_start(i2cp));
+
   /* Sending anddress and mode.*/
   CHECK_ERROR(i2c_write_header(i2cp, addr, true));
 
@@ -408,6 +408,9 @@ msg_t i2c_lld_master_transmit_timeout(I2CDriver *i2cp, i2caddr_t addr,
     i2cp->end += timeout;
   }
 
+  /* send start condition */  
+  CHECK_ERROR(i2c_write_start(i2cp));
+
   /* Sending anddress and mode.*/
   CHECK_ERROR(i2c_write_header(i2cp, addr, false));
 
@@ -417,7 +420,12 @@ msg_t i2c_lld_master_transmit_timeout(I2CDriver *i2cp, i2caddr_t addr,
 
   /* Is there a read phase? */
   if (rxbytes > 0U) {
+
+    /* send restart condition */  
     CHECK_ERROR(i2c_write_restart(i2cp));
+    /* Sending anddress and mode.*/
+    CHECK_ERROR(i2c_write_header(i2cp, addr, true));
+
     do {
       /* Last byte sends a NACK.*/
       msg_t msg = i2c_read_byte(i2cp, rxbytes > 1U ? 0U : 1U);

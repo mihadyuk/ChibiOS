@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -22,6 +22,8 @@
  * @brief   Time and intervals macros and structures.
  *
  * @addtogroup time_intervals
+ * @details This module is responsible for handling of system time and time
+ *          intervals.
  * @{
  */
 
@@ -66,39 +68,6 @@
 /*===========================================================================*/
 /* Module pre-compile time settings.                                         */
 /*===========================================================================*/
-
-/**
- * @brief   System time counter resolution.
- * @note    Allowed values are 16, 32 or 64 bits.
- */
-#if !defined(CH_CFG_ST_RESOLUTION) || defined(__DOXYGEN__)
-#define CH_CFG_ST_RESOLUTION                32
-#endif
-
-/**
- * @brief   System tick frequency.
- * @details Frequency of the system timer that drives the system ticks. This
- *          setting also defines the system tick time unit.
- */
-#if !defined(CH_CFG_ST_FREQUENCY) || defined(__DOXYGEN__)
-#define CH_CFG_ST_FREQUENCY                 1000
-#endif
-
-/**
- * @brief   Time intervals data size.
- * @note    Allowed values are 16, 32 or 64 bits.
- */
-#if !defined(CH_CFG_INTERVALS_SIZE) || defined(__DOXYGEN__)
-#define CH_CFG_INTERVALS_SIZE               32
-#endif
-
-/**
- * @brief   Time types data size.
- * @note    Allowed values are 16 or 32 bits.
- */
-#if !defined(CH_CFG_TIME_TYPES_SIZE) || defined(__DOXYGEN__)
-#define CH_CFG_TIME_TYPES_SIZE              32
-#endif
 
 /*===========================================================================*/
 /* Derived constants and error checks.                                       */
@@ -331,7 +300,7 @@ extern "C" {
  * @details Converts from seconds to system ticks number.
  * @note    The result is rounded upward to the next tick boundary.
  *
- * @param[in] sec       number of seconds
+ * @param[in] secs      number of seconds
  * @return              The number of ticks.
  *
  * @special
@@ -472,7 +441,9 @@ static inline time_usecs_t chTimeI2US(sysinterval_t interval) {
 static inline systime_t chTimeAddX(systime_t systime,
                                    sysinterval_t interval) {
 
+#if CH_CFG_ST_RESOLUTION != CH_CFG_INTERVALS_SIZE
   chDbgCheck(interval <= (sysinterval_t)((systime_t)-1));
+#endif
 
   return systime + (systime_t)interval;
 }
@@ -488,7 +459,10 @@ static inline systime_t chTimeAddX(systime_t systime,
  */
 static inline sysinterval_t chTimeDiffX(systime_t start, systime_t end) {
 
+  /*lint -save -e9033 [10.8] This cast is required by the operation, it is
+    known that the destination type can be wider.*/
   return (sysinterval_t)((systime_t)(end - start));
+  /*lint -restore*/
 }
 
 /**

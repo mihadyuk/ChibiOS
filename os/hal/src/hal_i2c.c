@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -176,7 +176,7 @@ msg_t i2cMasterTransmitTimeout(I2CDriver *i2cp,
                                sysinterval_t timeout) {
   msg_t rdymsg;
 
-  osalDbgCheck((i2cp != NULL) && (addr != 0U) &&
+  osalDbgCheck((i2cp != NULL) &&
                (txbytes > 0U) && (txbuf != NULL) &&
                ((rxbytes == 0U) || ((rxbytes > 0U) && (rxbuf != NULL))) &&
                (timeout != TIME_IMMEDIATE));

@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -77,6 +77,34 @@
 /*===========================================================================*/
 /* Driver exported functions.                                                */
 /*===========================================================================*/
+/**
+ * @brief   Configures peripheral security
+ *
+ * @param[in] mtxp      pointer to a MATRIX register block.
+ * @param[in] id        PERIPHERAL_ID.
+ * @param[in] mode      SECURE_PER or NOT_SECURE_PER.
+ *
+ * @retval true         Peripheral is not secured.
+ * @retval false        Peripheral is secured.
+ *
+ */
+bool mtxConfigPeriphSecurity(Matrix *mtxp, uint32_t id, bool mode) {
+
+  uint32_t mask;
+  mask = id & 0x1F;
+
+  mtxDisableWP(mtxp);
+  if (mode) {
+    mtxp->MATRIX_SPSELR[id / 32] |= (MATRIX_SPSELR_NSECP0 << mask);
+  }
+  else {
+    mtxp->MATRIX_SPSELR[id / 32] &= ~(MATRIX_SPSELR_NSECP0 << mask);
+  }
+  mtxEnableWP(mtxp);
+
+  return (MATRIX0->MATRIX_SPSELR[id / 32] & (MATRIX_SPSELR_NSECP0 << mask)) &
+         (MATRIX1->MATRIX_SPSELR[id / 32] & (MATRIX_SPSELR_NSECP0 << mask));
+}
 
 /**
  * @brief    Associates slave with a kind of master
@@ -139,11 +167,14 @@ void mtxSetSlaveSplitAddr(Matrix *mtxp, uint8_t slaveID,
   mtxDisableWP(mtxp);
   uint8_t i = mask, j = 0;
   uint32_t value = 0;
+  uint32_t pmask = 0;
   for (i = 1; (i <= mask) && (j < 32); i <<= 1, j += 4) {
-    if (i & mask)
+    if (i & mask) {
       value |= areaSize << j;
+      pmask |= 0x0F << j;
+    }
   }
-  mtxp->MATRIX_SASSR[slaveID] = value;
+  mtxp->MATRIX_SASSR[slaveID] = (mtxp->MATRIX_SASSR[slaveID] & ~pmask) | value;
   mtxEnableWP(mtxp);
 }
 
@@ -164,11 +195,14 @@ void mtxSetSlaveRegionSize(Matrix *mtxp, uint8_t slaveID,
   mtxDisableWP(mtxp);
   uint8_t i = mask, j = 0;
   uint32_t value = 0;
+  uint32_t pmask = 0;
   for (i = 1; (i <= mask) && (j < 32 ); i <<= 1, j += 4) {
-    if (i & mask)
+    if (i & mask) {
       value |= areaSize << j;
+      pmask |= 0x0F << j;
+    }
   }
-  mtxp->MATRIX_SRTSR[slaveID] = value;
+  mtxp->MATRIX_SRTSR[slaveID] = (mtxp->MATRIX_SRTSR[slaveID] & ~pmask) | value;
   mtxEnableWP(mtxp);
 }
 
@@ -183,7 +217,7 @@ void mtxRemapRom(void) {
   /* Invalidate I-Cache*/
   L1C_InvalidateICacheAll();
 
-  /* Ivalidate Region */
+  /* Invalidate Region */
   cacheInvalidateRegion((void*)0, IRAM_SIZE);
 }
 
@@ -198,9 +232,9 @@ void mtxRemapRam(void) {
   /* Invalidate I-Cache*/
   L1C_InvalidateICacheAll();
 
-  /* Ivalidate Region */
+  /* Clean I-Region */
   cacheCleanRegion((void*)IRAM_ADDR, IRAM_SIZE);
-  /* Ivalidate Region */
+  /* Invalidate Region */
   cacheInvalidateRegion((void*)0, IRAM_SIZE);
 }
 

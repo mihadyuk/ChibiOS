@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -83,12 +83,12 @@
 /**
  * @brief   Name of the implemented architecture.
  */
-#define PORT_ARCHITECTURE_NAME          "Power Architecture"
+#define PORT_ARCHITECTURE_NAME          "Power Architecture e200"
 
 /**
  * @brief   Compiler name and version.
  */
-#if defined(__GNUC__) || defined(__DOXYGEN__)
+#if (defined(__GNUC__) && !defined(__ghs__)) || defined(__DOXYGEN__)
 #define PORT_COMPILER_NAME              "GCC " __VERSION__
 
 #elif defined(__MWERKS__)

@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -60,21 +60,43 @@
  */
 void hal_lld_init(void) {
 
+#if (SAMA_HAL_IS_SECURE == TRUE)    /* The Matrix is PAS and PMC is always configured secure */
   /* Disabling PMC write protection. */
   pmcDisableWP();
+
+  PIT->PIT_MR &= ~(PIT_MR_PITEN | PIT_MR_PITIEN);
+
+  /* Configures peripherals as not-secure */
+  MATRIX0->MATRIX_SPSELR[0] = 0xFFFFFFFF;
+  MATRIX0->MATRIX_SPSELR[1] = 0xFFFFFFFF;
+  MATRIX0->MATRIX_SPSELR[2] = 0xFFFFFFFF;
+  MATRIX1->MATRIX_SPSELR[0] = 0xFFFFFFFF;
+  MATRIX1->MATRIX_SPSELR[1] = 0xFFFFFFFF;
+  MATRIX1->MATRIX_SPSELR[2] = 0xFFFFFFFF;
+
+  /* Configures PMC and RTC as secure */
+  //mtxConfigPeriphSecurity(MATRIX1, ID_SYSC, SECURE_PER);
+  //mtxConfigPeriphSecurity(MATRIX0, ID_PMC, SECURE_PER);
+  mtxConfigPeriphSecurity(MATRIX1, ID_SFC, SECURE_PER);
+  mtxConfigPeriphSecurity(MATRIX1, ID_SFR, SECURE_PER);
+  mtxConfigPeriphSecurity(MATRIX0, ID_L2CC, SECURE_PER);
+  mtxConfigPeriphSecurity(MATRIX1, ID_SFRBU, SECURE_PER);
+  mtxConfigPeriphSecurity(MATRIX1, ID_CHIPID, SECURE_PER);
 
   /* Enabling matrix clock */
   pmcEnableH32MX();
   pmcEnableH64MX();
-
   /* Enabling write protection.  */
   pmcEnableWP();
+#endif
+
+  /* Advanced interrupt controller init */
+  aicInit();
 
 #if defined(SAMA_DMA_REQUIRED)
   dmaInit();
 #endif
-  /* Advanced interrupt controller init */
-  aicInit();
+
 }
 
 /**
@@ -85,7 +107,7 @@ void hal_lld_init(void) {
  * @special
  */
 void sama_clock_init(void) {
-#if !SAMA_NO_INIT
+#if (!SAMA_NO_INIT && SAMA_HAL_IS_SECURE == TRUE)
   uint32_t mor, pllar, mckr, mainf;
   /* Disabling PMC write protection. */
   pmcDisableWP();

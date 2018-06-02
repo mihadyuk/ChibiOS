@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -136,8 +136,8 @@ void hal_lld_init(void) {
   rccResetAPB2(0xFFFFFFFF);
 
   /* PWR and BD clocks enabled.*/
-  rccEnablePWRInterface(FALSE);
-  rccEnableBKPInterface(FALSE);
+  rccEnablePWRInterface(true);
+  rccEnableBKPInterface(true);
 
   /* Initializes the backup domain.*/
   hal_lld_backup_domain_init();
@@ -253,8 +253,7 @@ void stm32_clock_init(void) {
   /* HSI is selected as new source without touching the other fields in
      CFGR. Clearing the register has to be postponed after HSI is the
      new source.*/
-  RCC->CFGR &= ~RCC_CFGR_SW;                /* Reset SW */
-  RCC->CFGR |= RCC_CFGR_SWS_HSI;            /* Select HSI as internal*/
+  RCC->CFGR &= ~RCC_CFGR_SW;                /* Reset SW, selecting HSI.     */
   while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI)
     ;                                       /* Wait until HSI is selected.  */
 

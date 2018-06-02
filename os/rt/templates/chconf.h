@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 */
 
 /**
- * @file    templates/chconf.h
+ * @file    rt/templates/chconf.h
  * @brief   Configuration file template.
  * @details A copy of this file must be placed in each project directory, it
  *          contains the application specific kernel settings.
@@ -50,6 +50,18 @@
  *          setting also defines the system tick time unit.
  */
 #define CH_CFG_ST_FREQUENCY                 10000
+
+/**
+ * @brief   Time intervals data size.
+ * @note    Allowed values are 16, 32 or 64 bits.
+ */
+#define CH_CFG_INTERVALS_SIZE               32
+
+/**
+ * @brief   Time types data size.
+ * @note    Allowed values are 16 or 32 bits.
+ */
+#define CH_CFG_TIME_TYPES_SIZE              32
 
 /**
  * @brief   Time delta constant for the tick-less mode.
@@ -305,19 +317,6 @@
 #define CH_CFG_USE_OBJ_FIFOS                TRUE
 
 /**
- * @name    Objects factory settings.
- * @{
- */
-#define CH_CFG_USE_FACTORY                  TRUE
-#define CH_CFG_FACTORY_MAX_NAMES_LENGTH     8
-#define CH_CFG_FACTORY_OBJECTS_REGISTRY     TRUE
-#define CH_CFG_FACTORY_GENERIC_BUFFERS      TRUE
-#define CH_CFG_FACTORY_SEMAPHORES           TRUE
-#define CH_CFG_FACTORY_MAILBOXES            TRUE
-#define CH_CFG_FACTORY_OBJ_FIFOS            TRUE
-/** @} */
-
-/**
  * @brief   Dynamic Threads APIs.
  * @details If enabled then the dynamic threads creation APIs are included
  *          in the kernel.
@@ -480,6 +479,22 @@
 /*===========================================================================*/
 
 /**
+ * @brief   System structure extension.
+ * @details User fields added to the end of the @p ch_system_t structure.
+ */
+#define CH_CFG_SYSTEM_EXTRA_FIELDS                                          \
+  /* Add threads custom fields here.*/
+
+/**
+ * @brief   System initialization hook.
+ * @details User initialization code added to the @p chSysInit() function
+ *          just before interrupts are enabled globally.
+ */
+#define CH_CFG_SYSTEM_INIT_HOOK(tp) {                                       \
+  /* Add threads initialization code here.*/                                \
+}
+
+/**
  * @brief   Threads descriptor structure extension.
  * @details User fields added to the end of the @p thread_t structure.
  */
@@ -488,9 +503,9 @@
 
 /**
  * @brief   Threads initialization hook.
- * @details User initialization code added to the @p chThdInit() API.
+ * @details User initialization code added to the @p _thread_init() function.
  *
- * @note    It is invoked from within @p chThdInit() and implicitly from all
+ * @note    It is invoked from within @p _thread_init() and implicitly from all
  *          the threads creation APIs.
  */
 #define CH_CFG_THREAD_INIT_HOOK(tp) {                                       \

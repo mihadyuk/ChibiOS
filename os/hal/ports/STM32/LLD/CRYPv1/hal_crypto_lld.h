@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -35,11 +35,21 @@
  * @name    Driver capability switches
  * @{
  */
+#define CRY_LLD_SUPPORTS_AES                TRUE
 #define CRY_LLD_SUPPORTS_AES_ECB            TRUE
 #define CRY_LLD_SUPPORTS_AES_CBC            TRUE
 #define CRY_LLD_SUPPORTS_AES_CFB            FALSE
 #define CRY_LLD_SUPPORTS_AES_CTR            TRUE
 #define CRY_LLD_SUPPORTS_AES_GCM            TRUE
+#define CRY_LLD_SUPPORTS_DES                TRUE
+#define CRY_LLD_SUPPORTS_DES_ECB            TRUE
+#define CRY_LLD_SUPPORTS_DES_CBC            TRUE
+#define CRY_LLD_SUPPORTS_SHA1               TRUE
+#define CRY_LLD_SUPPORTS_SHA256             TRUE
+#define CRY_LLD_SUPPORTS_SHA512             TRUE
+#define CRY_LLD_SUPPORTS_HMAC_SHA256        TRUE
+#define CRY_LLD_SUPPORTS_HMAC_SHA512        TRUE
+#define CRY_LLD_SUPPORTS_TRNG               TRUE
 /** @{ */
 
 /*===========================================================================*/
@@ -47,16 +57,16 @@
 /*===========================================================================*/
 
 /**
- * @name    PLATFORM configuration options
+ * @name    STM32 configuration options
  * @{
  */
 /**
  * @brief   CRY1 driver enable switch.
- * @details If set to @p TRUE the support for CRY1 is included.
+ * @details If set to @p TRUE the support for CRYP1 is included.
  * @note    The default is @p FALSE.
  */
-#if !defined(PLATFORM_CRY_USE_CRY1) || defined(__DOXYGEN__)
-#define PLATFORM_CRY_USE_CRY1                  FALSE
+#if !defined(STM32_CRY_USE_CRYP1) || defined(__DOXYGEN__)
+#define STM32_CRY_USE_CRYP1                 FALSE
 #endif
 /** @} */
 
@@ -118,6 +128,51 @@ struct CRYDriver {
   /* End of the mandatory fields.*/
 };
 
+#if (CRY_LLD_SUPPORTS_SHA1 == TRUE) || defined(__DOXYGEN__)
+/**
+ * @brief   Type of a SHA1 context.
+ */
+typedef struct {
+  uint32_t dummy;
+} SHA1Context;
+#endif
+
+#if (CRY_LLD_SUPPORTS_SHA256 == TRUE) || defined(__DOXYGEN__)
+/**
+ * @brief   Type of a SHA256 context.
+ */
+typedef struct {
+  uint32_t dummy;
+} SHA256Context;
+#endif
+
+#if (CRY_LLD_SUPPORTS_SHA512 == TRUE) || defined(__DOXYGEN__)
+/**
+ * @brief   Type of a SHA512 context.
+ */
+typedef struct {
+  uint32_t dummy;
+} SHA512Context;
+#endif
+
+#if (CRY_LLD_SUPPORTS_HMAC_SHA256 == TRUE) || defined(__DOXYGEN__)
+/**
+ * @brief   Type of a HMAC_SHA256 context.
+ */
+typedef struct {
+  uint32_t dummy;
+} HMACSHA256Context;
+#endif
+
+#if (CRY_LLD_SUPPORTS_HMAC_SHA512 == TRUE) || defined(__DOXYGEN__)
+/**
+ * @brief   Type of a HMAC_SHA512 context.
+ */
+typedef struct {
+  uint32_t dummy;
+} HMACSHA512Context;
+#endif
+
 /*===========================================================================*/
 /* Driver macros.                                                            */
 /*===========================================================================*/
@@ -126,7 +181,7 @@ struct CRYDriver {
 /* External declarations.                                                    */
 /*===========================================================================*/
 
-#if (PLATFORM_CRY_USE_CRY1 == TRUE) && !defined(__DOXYGEN__)
+#if (STM32_CRY_USE_CRYP1 == TRUE) && !defined(__DOXYGEN__)
 extern CRYDriver CRYD1;
 #endif
 
@@ -140,6 +195,14 @@ extern "C" {
                              cryalgorithm_t algorithm,
                              size_t size,
                              const uint8_t *keyp);
+  cryerror_t cry_lld_encrypt_AES(CRYDriver *cryp,
+                                 crykey_t key_id,
+                                 const uint8_t *in,
+                                 uint8_t *out);
+  cryerror_t cry_lld_decrypt_AES(CRYDriver *cryp,
+                                 crykey_t key_id,
+                                 const uint8_t *in,
+                                 uint8_t *out);
   cryerror_t cry_lld_encrypt_AES_ECB(CRYDriver *cryp,
                                      crykey_t key_id,
                                      size_t size,
@@ -204,6 +267,68 @@ extern "C" {
                                      size_t aadsize,
                                      const uint8_t *aad,
                                      uint8_t *authtag);
+  cryerror_t cry_lld_encrypt_DES(CRYDriver *cryp,
+                                 crykey_t key_id,
+                                 const uint8_t *in,
+                                 uint8_t *out);
+  cryerror_t cry_lld_decrypt_DES(CRYDriver *cryp,
+                                 crykey_t key_id,
+                                 const uint8_t *in,
+                                 uint8_t *out);
+  cryerror_t cry_lld_encrypt_DES_ECB(CRYDriver *cryp,
+                                    crykey_t key_id,
+                                    size_t size,
+                                    const uint8_t *in,
+                                    uint8_t *out);
+  cryerror_t cry_lld_decrypt_DES_ECB(CRYDriver *cryp,
+                                     crykey_t key_id,
+                                     size_t size,
+                                     const uint8_t *in,
+                                     uint8_t *out);
+  cryerror_t cry_lld_encrypt_DES_CBC(CRYDriver *cryp,
+                                     crykey_t key_id,
+                                     size_t size,
+                                     const uint8_t *in,
+                                     uint8_t *out,
+                                     const uint8_t *iv);
+  cryerror_t cry_lld_decrypt_DES_CBC(CRYDriver *cryp,
+                                     crykey_t key_id,
+                                     size_t size,
+                                     const uint8_t *in,
+                                     uint8_t *out,
+                                     const uint8_t *iv);
+  cryerror_t cry_lld_SHA1_init(CRYDriver *cryp, SHA1Context *sha1ctxp);
+  cryerror_t cry_lld_SHA1_update(CRYDriver *cryp, SHA1Context *sha1ctxp,
+                                 size_t size, const uint8_t *in);
+  cryerror_t cry_lld_SHA1_final(CRYDriver *cryp, SHA1Context *sha1ctxp,
+                                uint8_t *out);
+  cryerror_t cry_lld_SHA256_init(CRYDriver *cryp, SHA256Context *sha256ctxp);
+  cryerror_t cry_lld_SHA256_update(CRYDriver *cryp, SHA256Context *sha256ctxp,
+                                   size_t size, const uint8_t *in);
+  cryerror_t cry_lld_SHA256_final(CRYDriver *cryp, SHA256Context *sha256ctxp,
+                                  uint8_t *out);
+  cryerror_t cry_lld_SHA512_init(CRYDriver *cryp, SHA512Context *sha512ctxp);
+  cryerror_t cry_lld_SHA512_update(CRYDriver *cryp, SHA512Context *sha512ctxp,
+                                   size_t size, const uint8_t *in);
+  cryerror_t cry_lld_SHA512_final(CRYDriver *cryp, SHA512Context *sha512ctxp,
+                                  uint8_t *out);
+  cryerror_t cry_lld_HMACSHA256_init(CRYDriver *cryp,
+                                     HMACSHA256Context *hmacsha256ctxp);
+  cryerror_t cry_lld_HMACSHA256_update(CRYDriver *cryp,
+                                       HMACSHA256Context *hmacsha256ctxp,
+                                       size_t size, const uint8_t *in);
+  cryerror_t cry_lld_HMACSHA256_final(CRYDriver *cryp,
+                                      HMACSHA256Context *hmacsha256ctxp,
+                                      uint8_t *out);
+  cryerror_t cry_lld_HMACSHA512_init(CRYDriver *cryp,
+                                     HMACSHA512Context *hmacsha512ctxp);
+  cryerror_t cry_lld_HMACSHA512_update(CRYDriver *cryp,
+                                       HMACSHA512Context *hmacsha512ctxp,
+                                       size_t size, const uint8_t *in);
+  cryerror_t cry_lld_HMACSHA512_final(CRYDriver *cryp,
+                                      HMACSHA512Context *hmacsha512ctxp,
+                                      uint8_t *out);
+  cryerror_t cry_lld_TRNG(CRYDriver *cryp, uint8_t *out);
 #ifdef __cplusplus
 }
 #endif

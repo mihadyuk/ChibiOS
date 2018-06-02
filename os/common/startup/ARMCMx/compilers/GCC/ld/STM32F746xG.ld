@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -130,3 +130,7 @@ INCLUDE rules_code.ld
 
 /* Data rules inclusion.*/
 INCLUDE rules_data.ld
+
+/* Memory rules inclusion.*/
+INCLUDE rules_memory.ld
+

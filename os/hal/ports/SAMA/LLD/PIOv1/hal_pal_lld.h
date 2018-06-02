@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@
  * @name    SAMA-specific I/O mode flags
  * @{
  */
-#define PAL_SAMA_FUNC_MASK             (3U << 0U)
+#define PAL_SAMA_FUNC_MASK             (7U << 0U)
 #define PAL_SAMA_FUNC_GPIO             (0U << 0U)
 #define PAL_SAMA_FUNC_PERIPH_A         (1U << 0U)
 #define PAL_SAMA_FUNC_PERIPH_B         (2U << 0U)

@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ static THD_FUNCTION(Thread1, arg) {
 /*
  * Tester thread.
  */
-THD_WORKING_AREA(waThread2, 128);
+THD_WORKING_AREA(waThread2, 256);
 THD_FUNCTION(Thread2, arg) {
 
   (void)arg;

@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -64,7 +64,7 @@
 #define CH_STATE_CURRENT    (tstate_t)1      /**< @brief Currently running. */
 #define CH_STATE_WTSTART    (tstate_t)2      /**< @brief Just created.      */
 #define CH_STATE_SUSPENDED  (tstate_t)3      /**< @brief Suspended state.   */
-#define CH_STATE_QUEUED     (tstate_t)4      /**< @brief On an I/O queue.   */
+#define CH_STATE_QUEUED     (tstate_t)4      /**< @brief On a queue.        */
 #define CH_STATE_WTSEM      (tstate_t)5      /**< @brief On a semaphore.    */
 #define CH_STATE_WTMTX      (tstate_t)6      /**< @brief On a mutex.        */
 #define CH_STATE_WTCOND     (tstate_t)7      /**< @brief On a cond.variable.*/
@@ -113,18 +113,6 @@
 /*===========================================================================*/
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
-
-#if !defined(CH_CFG_IDLE_ENTER_HOOK)
-#error "CH_CFG_IDLE_ENTER_HOOK not defined in chconf.h"
-#endif
-
-#if !defined(CH_CFG_IDLE_LEAVE_HOOK)
-#error "CH_CFG_IDLE_LEAVE_HOOK not defined in chconf.h"
-#endif
-
-#if !defined(CH_CFG_IDLE_LOOP_HOOK)
-#error "CH_CFG_IDLE_LOOP_HOOK not defined in chconf.h"
-#endif
 
 /*===========================================================================*/
 /* Module data structures and types.                                         */
@@ -193,7 +181,7 @@ struct ch_thread {
    * @brief   Number of ticks remaining to this thread.
    */
 #if (CH_CFG_TIME_QUANTUM > 0) || defined(__DOXYGEN__)
-  tslices_t             preempt;
+  tslices_t             ticks;
 #endif
 #if (CH_DBG_THREADS_PROFILING == TRUE) || defined(__DOXYGEN__)
   /**
@@ -438,6 +426,7 @@ struct ch_system {
    */
   kernel_stats_t        kernel_stats;
 #endif
+  CH_CFG_SYSTEM_EXTRA_FIELDS
 };
 
 /*===========================================================================*/
@@ -705,7 +694,7 @@ static inline void chSchPreemption(void) {
   tprio_t p2 = currp->prio;
 
 #if CH_CFG_TIME_QUANTUM > 0
-  if (currp->preempt > (tslices_t)0) {
+  if (currp->ticks > (tslices_t)0) {
     if (p1 > p2) {
       chSchDoRescheduleAhead();
     }

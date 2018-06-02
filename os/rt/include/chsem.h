@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -146,7 +146,7 @@ static inline void chSemFastSignalI(semaphore_t *sp) {
  *
  * @iclass
  */
-static inline cnt_t chSemGetCounterI(semaphore_t *sp) {
+static inline cnt_t chSemGetCounterI(const semaphore_t *sp) {
 
   chDbgCheckClassI();
 

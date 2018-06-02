@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -32,14 +32,13 @@ SECTIONS
     {
         __ivpr_base__ = .;
         *(.boot)
-    } > flash
-
-    .boot1 ALIGN(16) :
-    {
         *(.handlers)
         *(.crt0)
+    } > flash
+
+    .vectors ALIGN(0x800) :
+    {
         /* The vectors table requires a 2kB alignment.*/
-        . = ALIGN(0x800);
         *(.vectors)
     } > flash
 
@@ -109,17 +108,22 @@ SECTIONS
 
     .data ALIGN(4) : AT(__romdata_start__)
     {
-        . = ALIGN(4);
         __data_start__ = .;
         *(.data)
         "*(.data.*)"
-        __sdata_start__ = . + 0x8000;
-        *(.sdata)
-        "*(.sdata.*)"
         . = ALIGN(4);
         *(.ramtext)
         . = ALIGN(4);
         __data_end__ = .;
+    } > ram
+
+    __romsdata_start__ = (__data_end__ - __data_start__) + __romdata_start__;
+
+    .sdata ALIGN(4) : AT(__romsdata_start__)
+    {
+         __sdata_start__ = . + 0x8000;
+        *(.sdata)
+        "*(.sdata.*)"
     } > ram
 
     .sbss ALIGN(4) :

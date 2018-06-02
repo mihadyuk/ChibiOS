@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -45,9 +45,9 @@
        "be zero or greater than one"
 #endif
 
-#if (CH_CFG_ST_TIMEDELTA > 0) && (CH_CFG_TIME_QUANTUM > 0)
-#error "CH_CFG_TIME_QUANTUM not supported in tickless mode"
-#endif
+//#if (CH_CFG_ST_TIMEDELTA > 0) && (CH_CFG_TIME_QUANTUM > 0)
+//#error "CH_CFG_TIME_QUANTUM not supported in tickless mode"
+//#endif
 
 #if (CH_CFG_ST_TIMEDELTA > 0) && (CH_DBG_THREADS_PROFILING == TRUE)
 #error "CH_DBG_THREADS_PROFILING not supported in tickless mode"
@@ -238,7 +238,7 @@ static inline bool chVTGetTimersStateI(sysinterval_t *timep) {
  *
  * @iclass
  */
-static inline bool chVTIsArmedI(virtual_timer_t *vtp) {
+static inline bool chVTIsArmedI(const virtual_timer_t *vtp) {
 
   chDbgCheckClassI();
 
@@ -255,7 +255,7 @@ static inline bool chVTIsArmedI(virtual_timer_t *vtp) {
  *
  * @api
  */
-static inline bool chVTIsArmed(virtual_timer_t *vtp) {
+static inline bool chVTIsArmed(const virtual_timer_t *vtp) {
   bool b;
 
   chSysLock();

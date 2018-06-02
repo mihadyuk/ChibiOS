@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -94,6 +94,12 @@
 #define STM32_TIM7_HANDLER          Vector11C
 #define STM32_TIM8_UP_HANDLER       VectorF0
 #define STM32_TIM8_CC_HANDLER       VectorF8
+#define STM32_TIM9_HANDLER          VectorA0 /* Note: same as STM32_TIM1_BRK */
+#define STM32_TIM10_HANDLER         VectorA4 /* Note: same as STM32_TIM1_UP */
+#define STM32_TIM11_HANDLER         VectorA8 /* Note: same as STM32_TIM1_TRG_COM */
+#define STM32_TIM12_HANDLER         VectorEC /* Note: same as STM32_TIM8_BRK */
+#define STM32_TIM13_HANDLER         VectorF0 /* Note: same as STM32_TIM8_UP */
+#define STM32_TIM14_HANDLER         VectorF4 /* Note: same as STM32_TIM8_TRG_COM */
 
 #define STM32_TIM1_UP_NUMBER        25
 #define STM32_TIM1_CC_NUMBER        27
@@ -105,6 +111,12 @@
 #define STM32_TIM7_NUMBER           55
 #define STM32_TIM8_UP_NUMBER        44
 #define STM32_TIM8_CC_NUMBER        46
+#define STM32_TIM9_NUMBER           24 /* Note: same as STM32_TIM1_BRK */
+#define STM32_TIM10_NUMBER          25 /* Note: same as STM32_TIM1_UP */
+#define STM32_TIM11_NUMBER          26 /* Note: same as STM32_TIM1_TRG_COM */
+#define STM32_TIM12_NUMBER          43 /* Note: same as STM32_TIM8_BRK */
+#define STM32_TIM13_NUMBER          44 /* Note: same as STM32_TIM8_UP */
+#define STM32_TIM14_NUMBER          45 /* Note: same as STM32_TIM8_TRG_COM */
 
 /*
  * USART units.

@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@
 #endif
 
 #if !defined(TRUE) || defined(__DOXYGEN__)
-#define TRUE                                (!FALSE)
+#define TRUE                                1
 #endif
 
 #define OSAL_SUCCESS                        false
@@ -162,7 +162,7 @@ typedef uint32_t systime_t;
 
 #if 0
 /**
- * @brief   Type of system time counter.
+ * @brief   Type of system time interval.
  */
 typedef uint32_t sysinterval_t;
 #endif

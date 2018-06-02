@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ static const ADCConversionGroup adcgrpcfg1 = {
   NULL,
   adcerrorcallback,
   ADC_CFGR_CONT,            /* CFGR    */
+  0,                        /* CFGR2   */
   ADC_TR(0, 4095),          /* TR1     */
   {                         /* SMPR[2] */
     0,
@@ -84,6 +85,7 @@ static const ADCConversionGroup adcgrpcfg2 = {
   adccallback,
   adcerrorcallback,
   ADC_CFGR_CONT,                    /* CFGR    */
+  0,                        /* CFGR2   */
   ADC_TR(0, 4095),                  /* TR1     */
   {                                 /* SMPR[2] */
     ADC_SMPR1_SMP_AN5(ADC_SMPR_SMP_24P5)

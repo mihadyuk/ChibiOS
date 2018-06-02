@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -37,18 +37,6 @@
 /*===========================================================================*/
 /* Module pre-compile time settings.                                         */
 /*===========================================================================*/
-
-#if !defined(CH_CFG_THREAD_EXTRA_FIELDS)
-#error "CH_CFG_THREAD_EXTRA_FIELDS not defined in chconf.h"
-#endif
-
-#if !defined(CH_CFG_THREAD_INIT_HOOK)
-#error "CH_CFG_THREAD_INIT_HOOK not defined in chconf.h"
-#endif
-
-#if !defined(CH_CFG_THREAD_EXIT_HOOK)
-#error "CH_CFG_THREAD_EXIT_HOOK not defined in chconf.h"
-#endif
 
 /*===========================================================================*/
 /* Derived constants and error checks.                                       */

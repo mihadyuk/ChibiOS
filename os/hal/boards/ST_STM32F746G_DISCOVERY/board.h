@@ -618,7 +618,7 @@
                                      PIN_MODE_ALTERNATE(GPIOB_ULPI_D7) |    \
                                      PIN_MODE_INPUT(GPIOB_QSPI_NCS) |       \
                                      PIN_MODE_ALTERNATE(GPIOB_VCP_RX) |     \
-                                     PIN_MODE_INPUT(GPIOB_ARD_D15) |        \
+                                     PIN_MODE_OUTPUT(GPIOB_ARD_D15)|        \
                                      PIN_MODE_INPUT(GPIOB_ARD_D14) |        \
                                      PIN_MODE_ALTERNATE(GPIOB_ULPI_D3) |    \
                                      PIN_MODE_ALTERNATE(GPIOB_ULPI_D4) |    \
@@ -666,7 +666,7 @@
                                      PIN_PUPDR_PULLUP(GPIOB_ULPI_D7) |      \
                                      PIN_PUPDR_PULLUP(GPIOB_QSPI_NCS) |     \
                                      PIN_PUPDR_FLOATING(GPIOB_VCP_RX) |     \
-                                     PIN_PUPDR_PULLUP(GPIOB_ARD_D15) |      \
+                                     PIN_PUPDR_FLOATING(GPIOB_ARD_D15) |      \
                                      PIN_PUPDR_PULLUP(GPIOB_ARD_D14) |      \
                                      PIN_PUPDR_FLOATING(GPIOB_ULPI_D3) |    \
                                      PIN_PUPDR_FLOATING(GPIOB_ULPI_D4) |    \

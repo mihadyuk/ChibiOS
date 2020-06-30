@@ -734,7 +734,7 @@
                                      PIN_MODE_ALTERNATE(GPIOC_RMII_RXD0) |  \
                                      PIN_MODE_ALTERNATE(GPIOC_RMII_RXD1) |  \
                                      PIN_MODE_INPUT(GPIOC_ARD_D1) |         \
-                                     PIN_MODE_INPUT(GPIOC_ARD_D0) |         \
+                                     PIN_MODE_OUTPUT(GPIOC_ARD_D0) |         \
                                      PIN_MODE_ALTERNATE(GPIOC_SD_D0) |      \
                                      PIN_MODE_ALTERNATE(GPIOC_SD_D1) |      \
                                      PIN_MODE_ALTERNATE(GPIOC_SD_D2) |      \
@@ -798,7 +798,7 @@
                                      PIN_ODR_HIGH(GPIOC_RMII_RXD0) |        \
                                      PIN_ODR_HIGH(GPIOC_RMII_RXD1) |        \
                                      PIN_ODR_HIGH(GPIOC_ARD_D1) |           \
-                                     PIN_ODR_HIGH(GPIOC_ARD_D0) |           \
+                                     PIN_ODR_LOW(GPIOC_ARD_D0) |           \
                                      PIN_ODR_HIGH(GPIOC_SD_D0) |            \
                                      PIN_ODR_HIGH(GPIOC_SD_D1) |            \
                                      PIN_ODR_HIGH(GPIOC_SD_D2) |            \

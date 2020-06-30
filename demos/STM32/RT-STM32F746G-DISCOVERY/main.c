@@ -51,6 +51,17 @@ int main(void) {
   halInit();
   chSysInit();
 
+  while (1) {
+#if 0
+	  palSetPad(GPIOB, GPIOB_ARD_D15);
+	  chThdSleepMilliseconds(50);
+	  palClearPad(GPIOB, GPIOB_ARD_D15);
+#endif
+	  chThdSleepMilliseconds(1000);
+
+  }
+
+#if 0
   /*
    * ARD_D13 is programmed as output (board LED).
    */
@@ -78,4 +89,5 @@ int main(void) {
     }
     chThdSleepMilliseconds(500);
   }
+#endif
 }

@@ -163,7 +163,7 @@ static void stm32_gpio_init(void) {
   gpio_init(GPIOA, &gpio_default_config.PAData);
 #endif
 #if STM32_HAS_GPIOB
-  //gpio_init(GPIOB, &gpio_default_config.PBData);
+  gpio_init(GPIOB, &gpio_default_config.PBData);
 #endif
 #if STM32_HAS_GPIOC
   gpio_init(GPIOC, &gpio_default_config.PCData);

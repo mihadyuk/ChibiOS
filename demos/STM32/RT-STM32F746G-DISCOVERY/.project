@@ -77,6 +77,11 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>ST_STM32F746G_DISCOVERY</name>
+			<type>2</type>
+			<location>/home/user/workspace/ChibiOS/os/hal/boards/ST_STM32F746G_DISCOVERY</location>
+		</link>
+		<link>
 			<name>board</name>
 			<type>2</type>
 			<locationURI>CHIBIOS/os/hal/boards/ST_STM32F746G_DISCOVERY</locationURI>

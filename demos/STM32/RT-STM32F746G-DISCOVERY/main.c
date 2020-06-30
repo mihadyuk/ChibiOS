@@ -52,10 +52,10 @@ int main(void) {
   chSysInit();
 
   while (1) {
-#if 0
-	  palSetPad(GPIOB, GPIOB_ARD_D15);
+#if 1
+	  palSetPad(GPIOC, GPIOC_ARD_D0);
 	  chThdSleepMilliseconds(50);
-	  palClearPad(GPIOB, GPIOB_ARD_D15);
+	  palClearPad(GPIOC, GPIOC_ARD_D0);
 #endif
 	  chThdSleepMilliseconds(1000);
 

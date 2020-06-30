@@ -54,7 +54,7 @@ int main(void) {
   while (1) {
 #if 1
 	  palSetPad(GPIOC, GPIOC_ARD_D0);
-	  chThdSleepMilliseconds(50);
+	  chThdSleepMilliseconds(10);
 	  palClearPad(GPIOC, GPIOC_ARD_D0);
 #endif
 	  chThdSleepMilliseconds(1000);
